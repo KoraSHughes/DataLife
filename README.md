@@ -7,6 +7,14 @@ A current research project partnership between NYU, Politecnico di Milano, and R
 - Drive: https://drive.google.com/drive/u/2/folders/1Yb50q6S4WFuu1fUl2jDsDsLQXnBjJukL
     - Timeline: https://docs.google.com/document/d/1pvjEKBPctUSVmkJagOqbjg75urHlMuKdKaXYgLeUFzA/edit#heading=h.m193mcqm81xi
     
+
+## Reference for Generating Simulated Student's Data:
+- School Admissions Main Data: https://infohub.nyced.org/reports/government-reports/student-applications-admissions-and-offers
+- Admissions Outcomes Data: https://infohub.nyced.org/reports/admissions-and-enrollment/fall-2023-admissions-outcomes
+- MiddleSchool Demographics Data: https://data.cityofnewyork.us/Education/2017-18-2021-22-Demographic-Snapshot/c7ru-d68s/about_data
+- Test Scores Data: https://infohub.nyced.org/reports/academics/test-results
+- Reference Github: https://github.com/yehudagale/NYCSchoolDataGenerator
+
     
 # Description:
 Project title: A nutritional label for NYC high-school admissions: Explaining ranking and matching to middle school students
