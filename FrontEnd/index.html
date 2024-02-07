@@ -85,20 +85,16 @@
 		</p>
 	</div>
 
-	<div>
-		<p>Python stuff</p>
+	<div id="matplotlib">
+		<p class="heading-2 no-margin-top">Plot with Matplotlib</p>
 		<div>
-			<button py-click="print">Click me!</button>
-			<span id="text-output-1"></span>
+			<button id="btn-plot">Plot data</button>
 		</div>
-		<div>
-			<button py-click="print_alt">Click me!</button>
-			<span id="text-output-2"></span>
-		</div>
+		<div id="plot" class="hide"></div>
 	</div>
 
-	<script src="script.js"></script>
-	<script type="py" src="../BackEnd/pyscript/main.py" config="../BackEnd/pyscript/config.json"></script>
-	<script type="py" src="../BackEnd/pyscript/script.py" config="../BackEnd/pyscript/config.json"></script>
+	<!-- <script src="script.js"></script> -->
+	<script type="py" src="../BackEnd/pyscript/application_logic.py" config="../BackEnd/pyscript/config.json"></script>
+	<script type="py" src="../BackEnd/pyscript/base_handlers.py" config="../BackEnd/pyscript/config.json"></script>
 </body>
 </html>

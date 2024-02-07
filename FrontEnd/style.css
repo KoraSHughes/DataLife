@@ -62,7 +62,11 @@ option {
 }
 
 #about {
-	margin: 12.5vh 5vw;
+	margin: 12.5vh 5vw 0;
+}
+
+#matplotlib {
+	margin: 12.5vh 5vw 0;
 }
 
 .float-bar {
@@ -178,4 +182,12 @@ option {
 
 .select-no-option {
 	color: #616161;
+}
+
+.show {
+	display: block;
+}
+
+.hide {
+	display: none;
 }
