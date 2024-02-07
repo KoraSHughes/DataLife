@@ -1,4 +1,15 @@
+import {legend, swatches} from "@d3/color-legend"
+import {textcolor} from "@observablehq/text-color-annotations-in-markdown"
 // derivative source: https://observablehq.com/@korashughes/lifelane
+
+{
+    "type": "module",
+}
+
+light_blue = "#A7C7E7"
+light_pink = "#ffebef"  // "pink" also good
+
+prelim_data = "https://data.cityofnewyork.us/resource/76xm-jjuj.json?$limit=243979&%24where=cad_incident_id%20%25%2095%20%3D%200"
 
 
 const csvUrl = 'https://gist.githubusercontent.com/tanmayasang/b07e0ac7713a3deadd690c2b0ed27453/raw/unemployment-dec-2019@2.csv';
@@ -18,14 +29,17 @@ visWidth = width - margin.left - margin.right
 visHeight = 800 - margin.top - margin.bottom
 font_size = [] // small, med, large
 
-
-// Guidelines: make 4 different visualizations; each with 3 different channels, 3 different marks
-// for each visdescribe which channesla nd marks and why and is it good/bad
-
-// load the CSV file
+// load data from CSV file
 d3.csv(csvUrl).then(function(unemployment) {
+    
+    // ** adding geographic shape
+    nycGeo = FileAttachment("graphic-extras/nyu-2451-34509-geojson.json").json()
+    zipToGeo = d3.index(nycGeo.features, d => d.properties.zcta)
+
+
 	// if the CSV file was loaded: the JSON file
 	d3.json(jsonUrl).then(function (usaGeo) {
+        
 		// single object where the keys are the state names and the values are the unemployment rates
 		stateToRate = Object.fromEntries(new Map(unemployment.map(d => [d.state, d.rate])))
 		states = Array.from(unemployment.map(d => d.state))
@@ -143,7 +157,7 @@ d3.csv(csvUrl).then(function(unemployment) {
 		  .attr("width",17)
 		  .attr("height",17)
 		  .attr("fill", d => rateColor(d));
-          
+
 	}, function(reason) {
 		console.log(reason); // Error!
 		d3.select("body")
