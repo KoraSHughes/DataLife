@@ -15,10 +15,15 @@ class Student:
 		# The matched flag is still needed in order to avoid unnecessary proposals by students who are already matched.
 
 		self.last_proposal += 1
-		self.matched = True
 		return self.ranking[self.last_proposal]
 
-	def handle_rejection(self):
+	def update_match(self, matched: bool):
+		self.matched = matched
+
+	def get_matched(self):
+		self.matched = True
+
+	def get_unmatched(self):
 		self.matched = False
 
 	def can_propose(self):
@@ -26,7 +31,7 @@ class Student:
 		Returns `True` if and only if the student can propose to a new school, namely if the student does not have a
 		temporary allocation and still has some schools they haven't proposed to in their ranking.
 		"""
-		return (not self.matched and self.last_proposal < len(self.ranking)-1)
+		return not self.matched and self.last_proposal < len(self.ranking)-1
 
 	def get_result(self):
 		"""
@@ -35,17 +40,69 @@ class Student:
 		return None if not self.matched else self.ranking[self.last_proposal]
 
 class School:
-	def __init__(self, identifier, ranking, priority_students, priority_seats, total_seats):
+	def __init__(self, identifier, ranking, total_seats):
 		self.identifier = identifier
 
 		self.ranking_list = ranking
 		self.ranking = {rank: id for id, rank in enumerate(ranking)}
-		self.priority_dict = {id: id in priority_students for id in ranking}
 
-		self.priority_list = []
 		self.non_priority_list = []
-		self.priority_seats = priority_seats
 		self.total_seats = total_seats
+
+	def check_proposal(self, student_id) -> bool:
+		"""
+		Returns `True` if a proposal received by the specified student will be accepted, `False` otherwise.
+
+		Parameters:
+		- student_id: the identifier of the proposing student.
+		"""
+
+		# If the school has residual capacity, the proposal will be accepted regardless of rank.
+		if len(self.non_priority_list) < self.total_seats:
+			return True
+
+		# If the school has provisionally accepted at least one student that ranks worse than the proposing student, then
+		# the proposal will be accepted, otherwise it will be rejected.
+		rank = self.ranking.get(student_id)
+		return rank < -self.non_priority_list[0][0]
+
+	def handle_proposal(self, student_id) -> Student | None:
+		"""
+		Handles the proposal received by the specified student and returns the identifier of the student that is rejected
+		as a result, if applicable. If no student is rejected as a consequence of this proposal, returns `None`.
+
+		Parameters:
+		- student_id: the identifier of the proposing student.
+
+		Returns: the identifier of the rejected student, or `None` if no student was rejected.
+		"""
+
+		rank = self.ranking.get(student_id)
+		item = (-rank, student_id)  # student_rank is negated since heapq implements a min heap
+
+		# If the school has residual capacity, accept the proposing student and reject no one.
+		if len(self.non_priority_list) < self.total_seats:
+			heappush(self.non_priority_list, item)
+			return None
+
+		# If all seats have been filled, accept the proposing student on a provisional basis, then reject the lowest-ranking
+		# among the provisionally accepted students.
+		reject = heappushpop(self.non_priority_list, item)
+		return reject[1]
+
+	def get_result(self) -> tuple[list, list, int, int]:
+		"""
+		Returns the identifiers of the students matched with the school, along with the number of available spots.
+		"""
+		return [], self.non_priority_list, 0, self.total_seats
+
+class PrioritySchool(School):
+	def __init__(self, identifier, ranking, priority_students, priority_seats, total_seats):
+		self.super(identifier, ranking, total_seats)
+
+		self.priority_dict = {id: id in priority_students for id in ranking}
+		self.priority_list = []
+		self.priority_seats = priority_seats
 
 	def check_proposal(self, student_id) -> bool:
 		"""
@@ -126,7 +183,7 @@ class School:
 		reject = heappushpop(self.non_priority_list, item)
 		return reject[1]
 
-	def get_result(self):
+	def get_result(self) -> tuple[list, list, int, int]:
 		"""
 		Returns the identifiers of the students matched with the school, along with the number of available spots, divided
 		into priority and non-priority.
@@ -137,6 +194,8 @@ class Matching:
 	def __init__(self, students, schools):
 		self.students = {student['identifier']: Student(**student) for student in students}
 		self.schools = {school['identifier']: School(**school) for school in schools}
+		# self.students = {student_id: Student(student_id, ranking) for student_id, ranking in students.items()}
+		# self.schools = {school_id: School(school_id, ranking) for school_id, ranking in schools.items()}
 
 	def run_new(self):
 		students_to_match = list(self.students.copy().items())
@@ -144,17 +203,19 @@ class Matching:
 		while students_to_match:
 			identifier, student = students_to_match.pop(0)
 
-			accepted = False
-			while (not accepted and student.can_propose()):
-				if student.can_propose():
-					tgt = student.propose()
-					tgt_school = self.schools.get(tgt)
-					accepted = tgt_school.check_proposal(identifier)
+			matched = False
+			while not matched and student.can_propose():
+				tgt = student.propose()
+				tgt_school = self.schools.get(tgt)
+				matched = tgt_school.check_proposal(identifier)
 
-			if accepted:
+			if matched:
+				student.update_match(True)
 				reject = tgt_school.handle_proposal(identifier)
 				if reject:
-					students_to_match.append((reject, self.students.get(reject)))
+					reject_obj = self.students.get(reject)
+					reject_obj.update_match(False)
+					students_to_match.append((reject, reject_obj))
 
 		self.get_results()
 
@@ -169,13 +230,14 @@ class Matching:
 
 				if student.can_propose():
 					target = student.propose()
+					student.update_match(True)
 					tgt_school = self.schools.get(target)
 					rejected = tgt_school.handle_proposal(student.identifier)
 
 					if rejected is not None:
 						complete = False
 						rejected_student = self.students.get(rejected)
-						rejected_student.handle_rejection()
+						rejected_student.update_match(False)
 
 			rounds += 1
 			if verbose:
@@ -195,12 +257,16 @@ class Matching:
 		print()
 		print('*** Schools ***')
 		for id, school in self.schools.items():
-			priority, non_priority, pr_seats, seats = school.get_result()
 			print()
-			print(f'School {id} filled {len(priority)} out of {pr_seats} available seats, '
-						f'and {len(priority) + len(non_priority)} out of {seats} available seats.')
-			print(f'It accepted the following students as priority: {[s[1] for s in priority]}.')
-			print(f'It accepted the following students as non-priority: {[s[1] for s in non_priority]}.')
+			priority, non_priority, pr_seats, seats = school.get_result()
+			if len(priority) == 0 or pr_seats == 0:
+				print(f'School {id} filled {len(non_priority)} out of {seats} available seats.')
+				print(f'It accepted the following students: {[s[1] for s in non_priority]}.')
+			else:
+				print(f'School {id} filled {len(priority)} out of {pr_seats} available seats, '
+							f'and {len(priority) + len(non_priority)} out of {seats} available seats.')
+				print(f'It accepted the following students as priority: {[s[1] for s in priority]}.')
+				print(f'It accepted the following students as non-priority: {[s[1] for s in non_priority]}.')
 
 if __name__ == '__main__':
 	students = [
@@ -236,6 +302,12 @@ if __name__ == '__main__':
 		}
 	]
 
+	schools = [
+		{'identifier': 'R', 'ranking': ['F', 'C', 'E', 'A', 'D', 'B'], 'total_seats': 2},
+		{'identifier': 'B', 'ranking': ['A', 'B', 'C', 'D', 'E', 'F'], 'total_seats': 2},
+		{'identifier': 'Y', 'ranking': ['F', 'E', 'A', 'B', 'C', 'D'], 'total_seats': 2}
+	]
+
 	match = Matching(students, schools)
-	match.run()
-	# TODO match.run_new() needs fixing but run() is more than fine for now, there's only a slight difference
+	match.run_new()
+	# TODO match input structure: {student_id : [school_ids_ranked]}, {school ids : [student_ids_ranked]}
