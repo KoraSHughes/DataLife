@@ -10,91 +10,218 @@
 	<script defer type="module" src="https://pyscript.net/releases/2024.1.3/core.js"></script>
 </head>
 
-<body class="flex-col">
+<body>
+	<div id="main-content" class="flex-col">
 
-	<div id="nav-bar" class="float-bar flex-row justify-left-right">
-		<div class="bold">
-			<span>Match Maker</span>
+		<div id="nav-bar" class="flex-row">
+			<div class="nav-left">
+				<a id="btn-home" class="btn-secondary nav-margin-r" href="index.html">Home</a>
+				<a id="btn-about" class="btn-secondary nav-margin-lr" href="about.html">About</a>
+				<a id="btn-contact" class="btn-secondary nav-margin-l" href="contact.html">Contact</a>
+			</div>
+			<div class="logo">
+				<span>Match Maker</span>
+			</div>
+			<div class="nav-right">
+				<a class="btn-primary" href="#simulation">Run the simulation</a>
+			</div>
 		</div>
-		<div>
-			<span id="btn-about" class="nav-margin-r">About</span>
-			<span id="btn-how" class="nav-margin-lr">How it works</span>
-			<span id="btn-qa" class="nav-margin-l">Q&A</span>
+
+		<div id="landing-text" class="section flex-row no-wrap space-columns">
+			<div class="flex-grow-5">
+				<p class="heading-1">
+					The high-school admission process in New York City
+				</p>
+				<p class="subtitle">
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer mattis lacus eu hendrerit aliquam. Sed pulvinar
+					erat nec purus dictum, in luctus libero placerat. Quisque mattis mollis dolor. Nullam dignissim tellus non
+					lectus venenatis hendrerit.
+				</p>
+			</div>
+			<div class="flex-grow-4">
+				<img src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n" alt="NYU Tandon" style="width: 100%; height: auto;">
+			</div>
 		</div>
+
+		<div id="algorithm-overview" class="section flex-row no-wrap space-columns">
+			<div class="flex-grow-5">
+				<p class="heading-2">What is the matching algorithm?</p>
+				<p class="body">
+					At the core of the admission process is the Gale-Shapley stable matching algorithm. This procedure is designed to
+					assign students to schools in a way that respects both the students' preferences and the ordering of students
+					compiled by each school. At the end of the algorithm, all assignments are ensured to be stable: this means that,
+					among the schools that would offer them a seat, each student will be admitted to the one they ranked the highest
+					in their preference list. At the same time, this also means that schools will accept the students they ranked the
+					highest.
+				</p>
+				<a class="btn-secondary" href="policies.html">Discover more about admission policies</a>
+			</div>
+			<div class="flex-grow-4">
+				<img
+					src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n"
+					alt="NYU Tandon" style="width: 100%; height: auto;">
+			</div>
+		</div>
+
+		<div id="tentative-matching" class="section flex-row no-wrap space-columns">
+			<div class="flex-grow-4">
+				<img
+					src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n"
+					alt="NYU Tandon" style="width: 100%; height: auto;">
+			</div>
+			<div class="flex-grow-5">
+				<p class="heading-3">Tentative matching</p>
+				<p class="body">
+					The key to the process is using tentative matches. As the algorithm progresses, each school holds its seats for
+					the best-ranked students who requested to be admitted up to that point; when a student ranked higher than the
+					current seat holders makes a request, they will be given a seat at the expense of the lowest-ranked student who
+					was matched previously. This is a critical feature of the Gale-Shapley algorithm, as it guarantees that the
+					outcome will always be the same, regardless of the order in which the students are considered. This mechanism
+					encourages students to place their truly preferred schools at the top of their rankings: given the set of
+					schools that would accept a student, the student will always be matched with the one they ranked the highest.
+				</p>
+				<a class="btn-secondary" href="matching.html">Discover more about tentative matching</a>
+			</div>
+		</div>
+
+		<div id="list-length" class="section flex-row no-wrap space-columns">
+			<div class="flex-grow-5">
+				<p class="heading-3">List length limitation</p>
+				<p class="body">
+					To carry out the matching, the algorithm described above requires students to provide a ranking of all schools
+					in NYC, and schools to provide a ranking of all applying students. While this is feasible for schools, it is
+					unreasonable to expect the students and their families to rank hundreds of schools: for this reason, the student
+					preference list is limited to a maximum of 12 schools. Unfortunately, applying this limit comes at a cost: not
+					all students will be able to find a seat within their top 12 choices, and those who do not are said to be
+					unmatched.
+				</p>
+				<p class="heading-3">Unmatching</p>
+				<p class="body">
+					After the matching process, the Department of Education assigns each unmatched student to a school
+					picked at random from those that still have available seats, ensuring all applying students are admitted to a
+					school. The randomness in the assignment of schools to unmatched students can result in unfortunate matchings,
+					such as students being admitted to schools that do not specialize in their subjects of interest, or schools that
+					are very distant from their residence. To avert this possibility, then, it is essential that students give
+					thought to the preference list, maximizing their chances of getting accepted in one of their express choices.
+				</p>
+				<a class="btn-secondary" href="preferences.html">Learn more about compiling the school preference list</a>
+			</div>
+		</div>
+
+		<div id="lottery-number" class="section flex-row no-wrap space-columns">
+			<div class="flex-grow-4">
+				<div class="card">
+					<p class="heading-4">Examples of lottery numbers</p>
+					<p class="display">3a4bdc7f-8e91-0c2a-6f5d-1b9e6a38d047</p>
+				</div>
+				<div class="card">
+					<p class="heading-4">How good is each digit?</p>
+					<p class="helper">Based on the digit itself</p>
+					<p class="display spaced-out">0 1 2 3 4 5 6 7 8 9 a b c d e f</p>
+					<div class="gradient gn-yl-rd"></div>
+					<div class="flex-row">
+						<p class="helper">Best</p>
+						<p class="helper">Worst</p>
+					</div>
+				</div>
+				<div class="card">
+					<p class="heading-4">How relevant is each digit?</p>
+					<p class="helper">Based on the position of the digit</p>
+					<p class="display text-center">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
+					<div class="gradient grayscale"></div>
+					<div class="flex-row">
+						<p class="helper">Most relevant</p>
+						<p class="helper">Least relevant</p>
+					</div>
+				</div>
+			</div>
+			<div class="flex-grow-5">
+				<p class="heading-2">Lottery number</p>
+				<p class="subtitle">
+					One of the most confusing aspects of the admission process is the lottery number. This number is assigned
+					randomly to each student by the Department of Education and plays an important role in the outcome of the
+					matching algorithm.
+				</p>
+				<p class="heading-3">What does it do?</p>
+				<p class="body">
+					The lottery number's purpose is tie-breaking: regardless of the specific
+					<a href="policies.html">ranking policy</a>
+					adopted by each school, the sheer size of the applicant pool means there likely will be multiple students with
+					the same score. In such a case, the order of the tied students is decided thanks to the lottery number. For many
+					schools, a good lottery number might be the key factor in getting accepted: it is hard to overstate the
+					significance of this element of the admission process.
+				</p>
+				<p class="body">
+					One critical feature of the lottery number is the fact that, once it is assigned to a
+					student, it is unique: it is the same for all schools and it will be used to break any ties that affect the
+					student. As a result, the way the
+					<a href="preferences.html">preference list</a>
+					is compiled should heavily take into account the assigned lottery number, as it can sway the chances of matching
+					in a significant way.
+				</p>
+			</div>
+		</div>
+
+		<div id="lottery-evaluation" class="section flex-row no-wrap space-columns">
+			<div class="flex-grow-5">
+				<p class="heading-3">Evaluating your lottery number</p>
+				<p class="body">
+					By now, the relevance of the lottery number should be well established. You might notice, however, that this
+					number does not necessarily look like a number: this is because it is encoded in hexadecimal code, meaning it
+					will include the digits 0-9 as well as the letters A-F. Nonetheless, the way these numbers are compared is very
+					straightforward.
+				</p>
+				<p class="body">
+					Starting from the first digit to the left, lower digits will be ranked ahead of higher digits,
+					and if the specific digits being compared are the same, then the next position in the lottery numbers is
+					examined. This comparison is repeated until two digits are found that are different (this is guaranteed to
+					happen, as no two students can have the same lottery number); in practice, the comparison typically never goes
+					further than the 6th digit out of 32. To summarize: when evaluating the lottery number, the most important
+					digits to examine are the first six, and the lower they are, the better. Remember that the digits are ordered
+					0-9, then A-F: a lottery number starting with 0 is very good, one starting with 5 is pretty good, but one
+					starting with E is very bad.
+				</p>
+			</div>
+			<div class="flex-grow-4">
+				<img
+					src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n"
+					alt="NYU Tandon" style="width: 100%; height: auto;">
+			</div>
+		</div>
+
 	</div>
 
-	<div id="landing-text" class="flex-row no-wrap justify-left-right">
-		<div class="heading-2 flex-grow-2">
-			Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi malesuada eleifend nulla quis ultricies.
-		</div>
-		<div class="flex-grow-3">
-			<img src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n" alt="NYU Tandon" style="width: 100%; height: auto;">
-		</div>
-	</div>
-
-	<form id="search-form">
-		<div id="search-bar" class="float-bar flex-row justify-space align-top">
-			<div id="lottery" class="flex-col flex-grow-3">
-				<input id="input-lottery-no" name="lottery-no" placeholder="Lottery number" />
-				<span class="helper">This is helper text</span>
-			</div>
-
-			<div>
-				<div class="divider-spacing"></div>
-				<div class="divider"></div>
-			</div>
-
-			<div id="district" class="flex-col flex-grow-1">
-				<select id="input-district-no" name="district-no" placeholder="District number" class="select-no-option">
-					<option hidden>District number</option>
-					<option value="1">01</option>
-					<option value="2">02</option>
-					<option value="3">03</option>
-				</select>
-				<span class="helper">This is helper text</span>
-				<!-- TODO: ADD CHEVRON -->
-			</div>
-
-			<div>
-				<div class="divider-spacing"></div>
-				<div class="divider"></div>
-			</div>
-
-			<div id="screen" class="flex-col flex-grow-2">
-				<select id="input-screen-group" name="screen-group" placeholder="Screen admissions group" class="select-no-option">
-					<option hidden>Screen admissions group</option>
-					<option value="1">Group 1</option>
-					<option value="2">Group 2</option>
-					<option value="3">Group 3</option>
-					<option value="4">Group 4</option>
-				</select>
-				<span class="helper">This is helper text</span>
-				<!-- TODO: ADD CHEVRON -->
-			</div>
-
-			<div id="search-btn">
-				<i class="material-icons large">south_east</i>
-			</div>
-		</div>
-	</form>
-
-	<div id="about">
-		<p class="heading-2 no-margin-top">About</p>
-		<p class="body no-margin-top">
-			Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi malesuada eleifend nulla quis ultricies.
+	<div id="simulation" class="flex-col highlight">
+		<p class="heading-2">First simulation</p>
+		<p class="body text-center">
+			Now that we explained the basics of the matching algorithm, try to run a simplified simulation. Here, the numbers are
+			roughly the same as in the NYC high school admission process, but the schools order students solely based on their
+			lottery numbers, while the students select and rank the schools at random. While this simulation does not cover all the
+			nuances of the admission process, it will give you a rough idea of the outcome.
 		</p>
+		<a class="btn-primary" href="#simulation">
+			Run the simulation
+		</a>
 	</div>
 
-	<div id="matplotlib">
-		<p class="heading-2 no-margin-top">Plot with Matplotlib</p>
-		<div>
-			<button id="btn-plot">Plot data</button>
+	<div id="footer" class="flex-col footer">
+		<div id="footer-buttons" class="flex-row">
+			<div class="nav-left">
+				<a id="btn-home-footer" class="btn-secondary nav-margin-r" href="index.html">Home</a>
+				<a id="btn-about-footer" class="btn-secondary nav-margin-lr" href="about.html">About</a>
+				<a id="btn-contact-footer" class="btn-secondary nav-margin-l" href="contact.html">Contact</a>
+			</div>
+			<div class="logo">
+				<span>Match Maker</span>
+			</div>
+			<div class="nav-right">
+				<span class="btn-secondary">Follow us on social media</span>
+			</div>
 		</div>
-		<div id="plot" class="hide"></div>
 	</div>
 
-	<!-- <script src="script.js"></script> -->
+	<script src="script.js"></script>
 	<script type="py" src="../BackEnd/pyscript/application_logic.py" config="../BackEnd/pyscript/config.json"></script>
-	<script type="py" src="../BackEnd/pyscript/base_handlers.py" config="../BackEnd/pyscript/config.json"></script>
+	<!-- <script type="py" src="../BackEnd/pyscript/base_handlers.py" config="../BackEnd/pyscript/config.json"></script> -->
 </body>
 </html>
