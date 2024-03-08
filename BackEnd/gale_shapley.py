@@ -1,10 +1,17 @@
 from heapq import heappop, heappush, heappushpop
-import bisect
+import numpy as np
+import time
+
+def average_lottery_number(numbers: list[str]) -> str:
+	numbers_int = [int('0x' + n[:8], 0) for n in numbers]
+	avg = sum(numbers_int) // len(numbers_int)
+	return f'{avg:#010x}'[2:]
 
 class Student:
-	def __init__(self, identifier, ranking):
+	def __init__(self, identifier, ranking, lottery_number):
 		self.identifier = identifier
 		self.ranking = ranking
+		self.lottery_number = lottery_number
 		self.last_proposal = -1
 		self.matched = False
 
@@ -20,12 +27,6 @@ class Student:
 	def update_match(self, matched: bool):
 		self.matched = matched
 
-	def get_matched(self):
-		self.matched = True
-
-	def get_unmatched(self):
-		self.matched = False
-
 	def can_propose(self):
 		"""
 		Returns `True` if and only if the student can propose to a new school, namely if the student does not have a
@@ -37,7 +38,10 @@ class Student:
 		"""
 		Returns the identifier of the school the student was matched with, or `None` if the student was unmatched.
 		"""
-		return None if not self.matched else self.ranking[self.last_proposal]
+		if not self.matched:
+			return None, None
+		else:
+			return self.ranking[self.last_proposal], self.last_proposal
 
 class School:
 	def __init__(self, identifier, ranking, total_seats):
@@ -48,6 +52,7 @@ class School:
 
 		self.non_priority_list = []
 		self.total_seats = total_seats
+		self.applications_received = 0
 
 	def check_proposal(self, student_id) -> bool:
 		"""
@@ -56,6 +61,8 @@ class School:
 		Parameters:
 		- student_id: the identifier of the proposing student.
 		"""
+
+		self.applications_received += 1
 
 		# If the school has residual capacity, the proposal will be accepted regardless of rank.
 		if len(self.non_priority_list) < self.total_seats:
@@ -90,15 +97,15 @@ class School:
 		reject = heappushpop(self.non_priority_list, item)
 		return reject[1]
 
-	def get_result(self) -> tuple[list, list, int, int]:
+	def get_result(self) -> tuple[list, list, int, int, int]:
 		"""
 		Returns the identifiers of the students matched with the school, along with the number of available spots.
 		"""
-		return [], self.non_priority_list, 0, self.total_seats
+		return [], self.non_priority_list, 0, self.total_seats, self.applications_received
 
 class PrioritySchool(School):
 	def __init__(self, identifier, ranking, priority_students, priority_seats, total_seats):
-		self.super(identifier, ranking, total_seats)
+		super().__init__(identifier, ranking, total_seats)
 
 		self.priority_dict = {id: id in priority_students for id in ranking}
 		self.priority_list = []
@@ -183,19 +190,21 @@ class PrioritySchool(School):
 		reject = heappushpop(self.non_priority_list, item)
 		return reject[1]
 
-	def get_result(self) -> tuple[list, list, int, int]:
+	def get_result(self) -> tuple[list, list, int, int, int]:
 		"""
 		Returns the identifiers of the students matched with the school, along with the number of available spots, divided
 		into priority and non-priority.
 		"""
-		return self.priority_list, self.non_priority_list, self.priority_seats, self.total_seats
+		return self.priority_list, self.non_priority_list, self.priority_seats, self.total_seats, self.applications_received
 
 class Matching:
-	def __init__(self, students, schools):
-		self.students = {student['identifier']: Student(**student) for student in students}
-		self.schools = {school['identifier']: School(**school) for school in schools}
-		# self.students = {student_id: Student(student_id, ranking) for student_id, ranking in students.items()}
-		# self.schools = {school_id: School(school_id, ranking) for school_id, ranking in schools.items()}
+	def __init__(self, students, lottery_nums, schools, capacities):
+		self.students = {
+			student_id: Student(student_id, ranking, lottery_nums[student_id]) for student_id, ranking in students.items()
+		}
+		self.schools = {
+			school_id: School(school_id, ranking, capacities[school_id]) for school_id, ranking in schools.items()
+		}
 
 	def run_new(self):
 		students_to_match = list(self.students.copy().items())
@@ -216,8 +225,6 @@ class Matching:
 					reject_obj = self.students.get(reject)
 					reject_obj.update_match(False)
 					students_to_match.append((reject, reject_obj))
-
-		self.get_results()
 
 	def run(self, verbose=True):
 		complete = False
@@ -247,67 +254,107 @@ class Matching:
 	def get_results(self):
 		print()
 		print('*** Students ***')
-		for id, student in self.students.items():
-			res = student.get_result()
-			if res is None:
-				print(f'Student {id} was unmatched.')
-			else:
-				print(f'Student {id} was matched with school {res}.')
+		bins = {i: [] for i in range(13)}
 
-		print()
-		print('*** Schools ***')
-		for id, school in self.schools.items():
-			print()
-			priority, non_priority, pr_seats, seats = school.get_result()
-			if len(priority) == 0 or pr_seats == 0:
-				print(f'School {id} filled {len(non_priority)} out of {seats} available seats.')
-				print(f'It accepted the following students: {[s[1] for s in non_priority]}.')
+		for id, student in self.students.items():
+			_, rank = student.get_result()
+			if rank is None:
+				bins[12].append(student.lottery_number)
 			else:
-				print(f'School {id} filled {len(priority)} out of {pr_seats} available seats, '
-							f'and {len(priority) + len(non_priority)} out of {seats} available seats.')
-				print(f'It accepted the following students as priority: {[s[1] for s in priority]}.')
-				print(f'It accepted the following students as non-priority: {[s[1] for s in non_priority]}.')
+				bins[rank].append(student.lottery_number)
+
+		counts, averages, ranges = [0] * 13, [0] * 13, [(0, 0)] * 13
+		for i, lottery_nums in bins.items():
+			count = len(lottery_nums)
+			average = average_lottery_number(lottery_nums)
+			best, worst = min(lottery_nums), max(lottery_nums)
+			counts[i] = count
+			averages[i] = average
+			ranges[i] = (best, worst)
+
+			if i == len(bins)-1:
+				print(f'Unmatched: {count}.')
+			else:
+				print(f'Matched to choice #{i+1}: {count}.')
+			print(f'\tAverage lottery number: {average}-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
+			print(f'\tBest lottery number: {best}')
+			print(f'\tWorst lottery number: {worst}')
+
+		np.save('BackEnd/Data/Simulation/bin_counts.npy', counts)
+		np.save('BackEnd/Data/Simulation/bin_averages.npy', averages)
+		np.save('BackEnd/Data/Simulation/bin_ranges.npy', ranges)
+
+		# print()
+		# print('*** Schools ***')
+		# for id, school in self.schools.items():
+		# 	print()
+		# 	priority, non_priority, pr_seats, seats, apps = school.get_result()
+		# 	print(f'School {id}: {apps} true applicants, {seats} seats, {100*np.min((1.*apps/seats, 1))}% of seats filled.')
+		# 	if len(priority) == 0 or pr_seats == 0:
+		# 		print(f'School {id} received {apps} applications, filling {len(non_priority)} out of {seats} available seats.')
+		# 		print(f'It accepted the following students: {[s[1] for s in non_priority]}.')
+		# 	else:
+		# 		print(f'School {id} received {apps} applications, filling {len(priority)} out of {pr_seats} priority seats '
+		# 					f'and {len(priority) + len(non_priority)} out of {seats} overall seats.')
+		# 		print(f'It accepted the following students as priority: {[s[1] for s in priority]}.')
+		# 		print(f'It accepted the following students as non-priority: {[s[1] for s in non_priority]}.')
 
 if __name__ == '__main__':
-	students = [
-		{'identifier': 'A', 'ranking': ['R', 'B', 'Y']},
-		{'identifier': 'B', 'ranking': ['R', 'B', 'Y']},
-		{'identifier': 'C', 'ranking': ['B', 'R', 'Y']},
-		{'identifier': 'D', 'ranking': ['B', 'R', 'Y']},
-		{'identifier': 'E', 'ranking': ['R', 'Y', 'B']},
-		{'identifier': 'F', 'ranking': ['B', 'Y', 'R']}
-	]
+	start = time.time()
+	students = np.load('BackEnd/Data/Generated/student_rankings.npy', allow_pickle=True).item()
+	lottery = np.load('BackEnd/Data/Generated/student_lottery_nums.npy', allow_pickle=True).item()
+	schools = np.load('BackEnd/Data/Generated/school_rankings_id.npy', allow_pickle=True).item()
+	capacities = np.load('BackEnd/Data/Generated/school_capacities.npy', allow_pickle=True).item()
+	load_time = time.time() - start
+	print(f'Loading done in {load_time:.2f} seconds.')
 
-	schools = [
-		{
-			'identifier': 'R',
-			'ranking': ['F', 'C', 'E', 'A', 'D', 'B'],
-			'priority_students': ['A', 'B', 'D', 'E'],
-			'priority_seats': 2,
-			'total_seats': 2
-		},
-		{
-			'identifier': 'B',
-			'ranking': ['A', 'B', 'C', 'D', 'E', 'F'],
-			'priority_students': ['B', 'C', 'D', 'F'],
-			'priority_seats': 2,
-			'total_seats': 2
-		},
-		{
-			'identifier': 'Y',
-			'ranking': ['F', 'E', 'A', 'B', 'C', 'D'],
-			'priority_students': ['F', 'D'],
-			'priority_seats': 2,
-			'total_seats': 2
-		}
-	]
-
-	schools = [
-		{'identifier': 'R', 'ranking': ['F', 'C', 'E', 'A', 'D', 'B'], 'total_seats': 2},
-		{'identifier': 'B', 'ranking': ['A', 'B', 'C', 'D', 'E', 'F'], 'total_seats': 2},
-		{'identifier': 'Y', 'ranking': ['F', 'E', 'A', 'B', 'C', 'D'], 'total_seats': 2}
-	]
-
-	match = Matching(students, schools)
+	start = time.time()
+	match = Matching(students, lottery, schools, capacities)
 	match.run_new()
-	# TODO match input structure: {student_id : [school_ids_ranked]}, {school ids : [student_ids_ranked]}
+	match_time = time.time() - start
+	print()
+	print(f'Matching done in {match_time:.2f} seconds.')
+
+	match.get_results()
+
+	# students = [
+	# 	{'identifier': 'A', 'ranking': ['R', 'B', 'Y']},
+	# 	{'identifier': 'B', 'ranking': ['R', 'B', 'Y']},
+	# 	{'identifier': 'C', 'ranking': ['B', 'R', 'Y']},
+	# 	{'identifier': 'D', 'ranking': ['B', 'R', 'Y']},
+	# 	{'identifier': 'E', 'ranking': ['R', 'Y', 'B']},
+	# 	{'identifier': 'F', 'ranking': ['B', 'Y', 'R']}
+	# ]
+
+	# schools = [
+	# 	{
+	# 		'identifier': 'R',
+	# 		'ranking': ['F', 'C', 'E', 'A', 'D', 'B'],
+	# 		'priority_students': ['A', 'B', 'D', 'E'],
+	# 		'priority_seats': 2,
+	# 		'total_seats': 2
+	# 	},
+	# 	{
+	# 		'identifier': 'B',
+	# 		'ranking': ['A', 'B', 'C', 'D', 'E', 'F'],
+	# 		'priority_students': ['B', 'C', 'D', 'F'],
+	# 		'priority_seats': 2,
+	# 		'total_seats': 2
+	# 	},
+	# 	{
+	# 		'identifier': 'Y',
+	# 		'ranking': ['F', 'E', 'A', 'B', 'C', 'D'],
+	# 		'priority_students': ['F', 'D'],
+	# 		'priority_seats': 2,
+	# 		'total_seats': 2
+	# 	}
+	# ]
+
+	# schools = [
+	# 	{'identifier': 'R', 'ranking': ['F', 'C', 'E', 'A', 'D', 'B'], 'total_seats': 2},
+	# 	{'identifier': 'B', 'ranking': ['A', 'B', 'C', 'D', 'E', 'F'], 'total_seats': 2},
+	# 	{'identifier': 'Y', 'ranking': ['F', 'E', 'A', 'B', 'C', 'D'], 'total_seats': 2}
+	# ]
+
+	# match = Matching(students, schools)
+	# match.run_new()
