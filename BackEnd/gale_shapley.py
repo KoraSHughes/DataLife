@@ -206,7 +206,7 @@ class Matching:
 			school_id: School(school_id, ranking, capacities[school_id]) for school_id, ranking in schools.items()
 		}
 
-	def run_new(self):
+	def run(self):
 		students_to_match = list(self.students.copy().items())
 
 		while students_to_match:
@@ -226,38 +226,15 @@ class Matching:
 					reject_obj.update_match(False)
 					students_to_match.append((reject, reject_obj))
 
-	def run(self, verbose=True):
-		complete = False
-		rounds = 0
-
-		while not complete:
-			complete = True
-
-			for student in self.students.values():
-
-				if student.can_propose():
-					target = student.propose()
-					student.update_match(True)
-					tgt_school = self.schools.get(target)
-					rejected = tgt_school.handle_proposal(student.identifier)
-
-					if rejected is not None:
-						complete = False
-						rejected_student = self.students.get(rejected)
-						rejected_student.update_match(False)
-
-			rounds += 1
-			if verbose:
-				print(f'\nResults after round {rounds}:')
-				self.get_results()
-
-	def get_results(self):
+	def get_results(self, save_to_disk=True):
 		print()
 		print('*** Students ***')
 		bins = {i: [] for i in range(13)}
+		matches = {}
 
 		for id, student in self.students.items():
-			_, rank = student.get_result()
+			school, rank = student.get_result()
+			matches[id] = school
 			if rank is None:
 				bins[12].append(student.lottery_number)
 			else:
@@ -280,9 +257,13 @@ class Matching:
 			print(f'\tBest lottery number: {best}')
 			print(f'\tWorst lottery number: {worst}')
 
-		np.save('BackEnd/Data/Simulation/bin_counts.npy', counts)
-		np.save('BackEnd/Data/Simulation/bin_averages.npy', averages)
-		np.save('BackEnd/Data/Simulation/bin_ranges.npy', ranges)
+		if save_to_disk:
+			np.save('BackEnd/Data/Simulation/bin_counts.npy', counts)
+			np.save('BackEnd/Data/Simulation/bin_averages.npy', averages)
+			np.save('BackEnd/Data/Simulation/bin_ranges.npy', ranges)
+			np.save('BackEnd/Data/Simulation/matches.npy', matches)
+		else:
+			return counts, averages, ranges, matches
 
 		# print()
 		# print('*** Schools ***')
@@ -305,12 +286,13 @@ if __name__ == '__main__':
 	lottery = np.load('BackEnd/Data/Generated/student_lottery_nums.npy', allow_pickle=True).item()
 	schools = np.load('BackEnd/Data/Generated/school_rankings_id.npy', allow_pickle=True).item()
 	capacities = np.load('BackEnd/Data/Generated/school_capacities.npy', allow_pickle=True).item()
+
+	match = Matching(students, lottery, schools, capacities)
 	load_time = time.time() - start
 	print(f'Loading done in {load_time:.2f} seconds.')
 
 	start = time.time()
-	match = Matching(students, lottery, schools, capacities)
-	match.run_new()
+	match.run()
 	match_time = time.time() - start
 	print()
 	print(f'Matching done in {match_time:.2f} seconds.')
