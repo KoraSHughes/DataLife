@@ -1,3 +1,7 @@
+html {
+	scroll-behavior: smooth;
+}
+
 body {
 	background: white;
 	color: #505f98;
@@ -165,10 +169,6 @@ option {
 	margin: 0 0 2.5vh;
 }
 
-.display.text-center {
-	letter-spacing: 1.1px;
-}
-
 .subtitle:last-child, .body:last-child {
 	margin: 0;
 }
@@ -234,7 +234,7 @@ option {
 }
 
 .show {
-	display: block;
+	display: flex;
 }
 
 .hide {
@@ -349,10 +349,6 @@ a.btn-secondary:hover, a.btn-secondary:active {
 
 .grayscale {
 	background-image: linear-gradient(to right, #37447e, #bac3e5, #e7ecff);
-}
-
-.spaced-out {
-	text-align-last: justify;
 }
 
 .footer {

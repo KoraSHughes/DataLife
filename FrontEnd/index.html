@@ -23,7 +23,7 @@
 				<span>Match Maker</span>
 			</div>
 			<div class="nav-right">
-				<a class="btn-primary" href="#simulation">Run the simulation</a>
+				<a id="run-simulation-header" class="btn-primary" href="#simulation">Run the simulation</a>
 			</div>
 		</div>
 
@@ -117,7 +117,24 @@
 				<div class="card">
 					<p class="heading-4">How good is each digit?</p>
 					<p class="helper">Based on the digit itself</p>
-					<p class="display spaced-out">0 1 2 3 4 5 6 7 8 9 a b c d e f</p>
+					<div class="flex-row display">
+						<span>0</span>
+						<span>1</span>
+						<span>2</span>
+						<span>3</span>
+						<span>4</span>
+						<span>5</span>
+						<span>6</span>
+						<span>7</span>
+						<span>8</span>
+						<span>9</span>
+						<span>a</span>
+						<span>b</span>
+						<span>c</span>
+						<span>d</span>
+						<span>e</span>
+						<span>f</span>
+					</div>
 					<div class="gradient gn-yl-rd"></div>
 					<div class="flex-row">
 						<p class="helper">Best</p>
@@ -127,7 +144,44 @@
 				<div class="card">
 					<p class="heading-4">How relevant is each digit?</p>
 					<p class="helper">Based on the position of the digit</p>
-					<p class="display text-center">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
+					<div class="flex-row display">
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>-</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>-</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>-</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>-</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+						<span>x</span>
+					</div>
 					<div class="gradient grayscale"></div>
 					<div class="flex-row">
 						<p class="helper">Most relevant</p>
@@ -199,9 +253,17 @@
 			lottery numbers, while the students select and rank the schools at random. While this simulation does not cover all the
 			nuances of the admission process, it will give you a rough idea of the outcome.
 		</p>
-		<a class="btn-primary" href="#simulation">
+		<a id="run-simulation" class="btn-primary" href="#simulation">
 			Run the simulation
 		</a>
+		<div id="simulation-results" class="flex-row hide">
+			<div>
+				<p id="top-choice" class="body"></p>
+				<p id="top-five-choice" class="body"></p>
+				<p id="unmatched" class="body"></p>
+			</div>
+			<div id="plot"></div>
+		</div>
 	</div>
 
 	<div id="footer" class="flex-col footer">
@@ -222,6 +284,5 @@
 
 	<script src="script.js"></script>
 	<script type="py" src="../BackEnd/pyscript/application_logic.py" config="../BackEnd/pyscript/config.json"></script>
-	<!-- <script type="py" src="../BackEnd/pyscript/base_handlers.py" config="../BackEnd/pyscript/config.json"></script> -->
 </body>
 </html>
