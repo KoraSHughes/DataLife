@@ -36,7 +36,8 @@ class Student:
 
 	def get_result(self):
 		"""
-		Returns the identifier of the school the student was matched with, or `None` if the student was unmatched.
+		Returns the identifier of the school the student was matched with and the position of the school in the
+		preference list (0-based), or `(None, None)` if the student was unmatched.
 		"""
 		if not self.matched:
 			return None, None
@@ -96,6 +97,11 @@ class School:
 		# among the provisionally accepted students.
 		reject = heappushpop(self.non_priority_list, item)
 		return reject[1]
+
+	def prefers_to_matches(self, student_id):
+		rank = self.ranking.get(student_id)
+		worst_match_rank = self.non_priority_list[0][0]
+		return rank < -worst_match_rank
 
 	def get_result(self) -> tuple[list, list, int, int, int]:
 		"""
@@ -258,10 +264,11 @@ class Matching:
 			print(f'\tWorst lottery number: {worst}')
 
 		if save_to_disk:
-			np.save('BackEnd/Data/Simulation/bin_counts.npy', counts)
-			np.save('BackEnd/Data/Simulation/bin_averages.npy', averages)
-			np.save('BackEnd/Data/Simulation/bin_ranges.npy', ranges)
-			np.save('BackEnd/Data/Simulation/matches.npy', matches)
+			path = 'BackEnd/Data/Simulation/'
+			np.save(path + 'bin_counts.npy', counts)
+			np.save(path + 'bin_averages.npy', averages)
+			np.save(path + 'bin_ranges.npy', ranges)
+			np.save(path + 'matches.npy', matches)
 		else:
 			return counts, averages, ranges, matches
 
@@ -280,12 +287,23 @@ class Matching:
 		# 		print(f'It accepted the following students as priority: {[s[1] for s in priority]}.')
 		# 		print(f'It accepted the following students as non-priority: {[s[1] for s in non_priority]}.')
 
+def run_simulation(stage=1):
+	students = np.load(f'student_rankings_stage{stage}.npy', allow_pickle=True).item()
+	lottery = np.load('student_lottery_nums.npy', allow_pickle=True).item()
+	schools = np.load('school_rankings_id.npy', allow_pickle=True).item()
+	capacities = np.load('school_capacities.npy', allow_pickle=True).item()
+
+	match = Matching(students, lottery, schools, capacities)
+	match.run()
+	return match.get_results(False)[:2]
+
 if __name__ == '__main__':
+	path = 'BackEnd/Data/Generated/'
 	start = time.time()
-	students = np.load('BackEnd/Data/Generated/student_rankings.npy', allow_pickle=True).item()
-	lottery = np.load('BackEnd/Data/Generated/student_lottery_nums.npy', allow_pickle=True).item()
-	schools = np.load('BackEnd/Data/Generated/school_rankings_id.npy', allow_pickle=True).item()
-	capacities = np.load('BackEnd/Data/Generated/school_capacities.npy', allow_pickle=True).item()
+	students = np.load(path + 'student_rankings.npy', allow_pickle=True).item()
+	lottery = np.load(path + 'student_lottery_nums.npy', allow_pickle=True).item()
+	schools = np.load(path + 'school_rankings_id.npy', allow_pickle=True).item()
+	capacities = np.load(path + 'school_capacities.npy', allow_pickle=True).item()
 
 	match = Matching(students, lottery, schools, capacities)
 	load_time = time.time() - start
