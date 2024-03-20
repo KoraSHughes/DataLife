@@ -344,7 +344,25 @@ a.btn-secondary:hover, a.btn-secondary:active {
 }
 
 .gn-yl-rd {
-	background-image: linear-gradient(to right, green, greenyellow, yellow, orange, red);
+	background-image: linear-gradient(
+		to right,
+		#f0f921,
+		#f9dc24,
+		#fec029,
+		#fca636,
+		#f68f44,
+		#ed7953,
+		#e16462,
+		#d35171,
+		#c33d80,
+		#b12a90,
+		#9c179e,
+		#8405a7,
+		#6a00a8,
+		#5002a2,
+		#330597,
+		#0d0887
+	);
 }
 
 .grayscale {
