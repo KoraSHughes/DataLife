@@ -49,7 +49,7 @@ class School:
 		self.identifier = identifier
 
 		self.ranking_list = ranking
-		self.ranking = {rank: id for id, rank in enumerate(ranking)}
+		self.ranking = {student_id: rank for rank, student_id in enumerate(ranking)}
 
 		self.non_priority_list = []
 		self.total_seats = total_seats
@@ -113,13 +113,16 @@ class PrioritySchool(School):
 	def __init__(self, identifier, ranking, priority_students, priority_seats, total_seats):
 		super().__init__(identifier, ranking, total_seats)
 
-		self.priority_dict = {id: id in priority_students for id in ranking}
+		self.priority_dict = {student_id: student_id in priority_students for student_id in ranking}
 		self.priority_list = []
 		self.priority_seats = priority_seats
 
 	def check_proposal(self, student_id) -> bool:
 		"""
 		Returns `True` if a proposal received by the specified student will be accepted, `False` otherwise.
+
+		Parameters:
+		- student_id: the identifier of the proposing student.
 		"""
 
 		# If the school has residual capacity, the proposal will be accepted regardless of rank.
@@ -232,7 +235,33 @@ class Matching:
 					reject_obj.update_match(False)
 					students_to_match.append((reject, reject_obj))
 
-	def get_results(self, save_to_disk=True):
+	def check_stability(self):
+		print()
+		print('*** Stability check ***')
+
+		# First: verify that the outcome is stable, i.e. there are no (student, school) pairs that would rather be
+		# matched together than with their current matches
+		unstable_pairs = []
+		for student_id, student in self.students.items():
+			matched_school, rank = student.get_result()
+			# If rank == 0 then the student is matched with their preferred school, thus the pair is stable
+			if rank is None or rank > 0:
+				preferred_schools = student.ranking if rank is None else student.ranking[:rank]
+				i = 0
+				found_unstable = False
+				while not found_unstable and i < len(preferred_schools):
+					school_id = preferred_schools[i]
+					school = self.schools[school_id]
+					i += 1
+					if school.prefers_to_matches(student.lottery_number):
+						found_unstable = True
+						unstable_pairs.append((student_id, matched_school))
+
+		num_unstable = len(unstable_pairs)
+		print()
+		print(f'The outcome is {"stable" if num_unstable == 0 else "unstable"} ({num_unstable} unstable pairs).')
+
+	def get_results(self, stage, save_to_disk=True):
 		print()
 		print('*** Students ***')
 		bins = {i: [] for i in range(13)}
@@ -240,7 +269,7 @@ class Matching:
 
 		for id, student in self.students.items():
 			school, rank = student.get_result()
-			matches[id] = school
+			matches[id] = (school, rank+1 if rank is not None else None)
 			if rank is None:
 				bins[12].append(student.lottery_number)
 			else:
@@ -265,44 +294,26 @@ class Matching:
 
 		if save_to_disk:
 			path = 'BackEnd/Data/Simulation/'
-			np.save(path + 'bin_counts.npy', counts)
-			np.save(path + 'bin_averages.npy', averages)
-			np.save(path + 'bin_ranges.npy', ranges)
-			np.save(path + 'matches.npy', matches)
-		else:
-			return counts, averages, ranges, matches
+			np.save(path + f'bin_counts_stage{stage}.npy', counts)
+			np.save(path + f'bin_averages_stage{stage}.npy', averages)
+			np.save(path + f'bin_ranges_stage{stage}.npy', ranges)
+			np.save(path + f'matches_stage{stage}.npy', matches)
 
-		# print()
-		# print('*** Schools ***')
-		# for id, school in self.schools.items():
-		# 	print()
-		# 	priority, non_priority, pr_seats, seats, apps = school.get_result()
-		# 	print(f'School {id}: {apps} true applicants, {seats} seats, {100*np.min((1.*apps/seats, 1))}% of seats filled.')
-		# 	if len(priority) == 0 or pr_seats == 0:
-		# 		print(f'School {id} received {apps} applications, filling {len(non_priority)} out of {seats} available seats.')
-		# 		print(f'It accepted the following students: {[s[1] for s in non_priority]}.')
-		# 	else:
-		# 		print(f'School {id} received {apps} applications, filling {len(priority)} out of {pr_seats} priority seats '
-		# 					f'and {len(priority) + len(non_priority)} out of {seats} overall seats.')
-		# 		print(f'It accepted the following students as priority: {[s[1] for s in priority]}.')
-		# 		print(f'It accepted the following students as non-priority: {[s[1] for s in non_priority]}.')
+		return counts, averages, ranges, matches
 
-def run_simulation(stage=1):
-	students = np.load(f'student_rankings_stage{stage}.npy', allow_pickle=True).item()
-	lottery = np.load('student_lottery_nums.npy', allow_pickle=True).item()
-	schools = np.load('school_rankings_id.npy', allow_pickle=True).item()
-	capacities = np.load('school_capacities.npy', allow_pickle=True).item()
-
+def run_simulation(students, lottery, schools, capacities, stage):
 	match = Matching(students, lottery, schools, capacities)
 	match.run()
-	return match.get_results(False)[:2]
+	return match.get_results(stage, save_to_disk=False)
 
 if __name__ == '__main__':
+	stage = 1
+
 	path = 'BackEnd/Data/Generated/'
 	start = time.time()
-	students = np.load(path + 'student_rankings.npy', allow_pickle=True).item()
+	students = np.load(path + f'student_rankings_stage{stage}.npy', allow_pickle=True).item()
 	lottery = np.load(path + 'student_lottery_nums.npy', allow_pickle=True).item()
-	schools = np.load(path + 'school_rankings_id.npy', allow_pickle=True).item()
+	schools = np.load(path + 'school_rankings_open.npy', allow_pickle=True).item()
 	capacities = np.load(path + 'school_capacities.npy', allow_pickle=True).item()
 
 	match = Matching(students, lottery, schools, capacities)
@@ -315,46 +326,5 @@ if __name__ == '__main__':
 	print()
 	print(f'Matching done in {match_time:.2f} seconds.')
 
-	match.get_results()
-
-	# students = [
-	# 	{'identifier': 'A', 'ranking': ['R', 'B', 'Y']},
-	# 	{'identifier': 'B', 'ranking': ['R', 'B', 'Y']},
-	# 	{'identifier': 'C', 'ranking': ['B', 'R', 'Y']},
-	# 	{'identifier': 'D', 'ranking': ['B', 'R', 'Y']},
-	# 	{'identifier': 'E', 'ranking': ['R', 'Y', 'B']},
-	# 	{'identifier': 'F', 'ranking': ['B', 'Y', 'R']}
-	# ]
-
-	# schools = [
-	# 	{
-	# 		'identifier': 'R',
-	# 		'ranking': ['F', 'C', 'E', 'A', 'D', 'B'],
-	# 		'priority_students': ['A', 'B', 'D', 'E'],
-	# 		'priority_seats': 2,
-	# 		'total_seats': 2
-	# 	},
-	# 	{
-	# 		'identifier': 'B',
-	# 		'ranking': ['A', 'B', 'C', 'D', 'E', 'F'],
-	# 		'priority_students': ['B', 'C', 'D', 'F'],
-	# 		'priority_seats': 2,
-	# 		'total_seats': 2
-	# 	},
-	# 	{
-	# 		'identifier': 'Y',
-	# 		'ranking': ['F', 'E', 'A', 'B', 'C', 'D'],
-	# 		'priority_students': ['F', 'D'],
-	# 		'priority_seats': 2,
-	# 		'total_seats': 2
-	# 	}
-	# ]
-
-	# schools = [
-	# 	{'identifier': 'R', 'ranking': ['F', 'C', 'E', 'A', 'D', 'B'], 'total_seats': 2},
-	# 	{'identifier': 'B', 'ranking': ['A', 'B', 'C', 'D', 'E', 'F'], 'total_seats': 2},
-	# 	{'identifier': 'Y', 'ranking': ['F', 'E', 'A', 'B', 'C', 'D'], 'total_seats': 2}
-	# ]
-
-	# match = Matching(students, schools)
-	# match.run_new()
+	match.get_results(stage)
+	match.check_stability()
