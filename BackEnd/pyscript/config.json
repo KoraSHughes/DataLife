@@ -1,10 +1,11 @@
 {
-	"packages": ["matplotlib", "numpy", "scipy"],
+	"packages": ["matplotlib", "numpy"],
 	"files": {
 		"../gale_shapley.py": "",
 		"../Data/Generated/student_rankings_stage1.npy": "",
 		"../Data/Generated/student_rankings_stage2.npy": "",
 		"../Data/Generated/student_lottery_nums.npy": "",
+		"../Data/Generated/school_rankings_open.npy": "",
 		"../Data/Generated/school_rankings_id.npy": "",
 		"../Data/Generated/school_capacities.npy": "",
 		"../Data/Simulation/bin_averages_stage1.npy": "",
