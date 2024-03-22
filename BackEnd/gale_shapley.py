@@ -2,11 +2,6 @@ from heapq import heappop, heappush, heappushpop
 import numpy as np
 import time
 
-def average_lottery_number(numbers: list[str]) -> str:
-	numbers_int = [int('0x' + n[:8], 0) for n in numbers]
-	avg = sum(numbers_int) // len(numbers_int)
-	return f'{avg:#010x}'[2:]
-
 class Student:
 	def __init__(self, identifier, ranking, lottery_number):
 		self.identifier = identifier
@@ -16,15 +11,15 @@ class Student:
 		self.matched = False
 
 	def propose(self):
-		# Here, last_proposal identifies the current temporary allocation: if a student proposes, it is safe to
-		# assume they will be accepted by the last school they proposed to until they are explicitly rejected.
-		# If last_proposal is equal to the length of the ranking, then the student is unmatched.
-		# The matched flag is still needed in order to avoid unnecessary proposals by students who are already matched.
+		"""
+		Moves down the preference list by one step, then returns the identifier of the next school the student will propose
+		to (namely, the highest ranked school the student is yet to propose to).
+		"""
 
 		self.last_proposal += 1
 		return self.ranking[self.last_proposal]
 
-	def update_match(self, matched: bool):
+	def update_match_status(self, matched: bool):
 		self.matched = matched
 
 	def can_propose(self):
@@ -55,7 +50,7 @@ class School:
 		self.total_seats = total_seats
 		self.applications_received = 0
 
-	def check_proposal(self, student_id) -> bool:
+	def check_match(self, student_id) -> bool:
 		"""
 		Returns `True` if a proposal received by the specified student will be accepted, `False` otherwise.
 
@@ -117,7 +112,7 @@ class PrioritySchool(School):
 		self.priority_list = []
 		self.priority_seats = priority_seats
 
-	def check_proposal(self, student_id) -> bool:
+	def check_match(self, student_id) -> bool:
 		"""
 		Returns `True` if a proposal received by the specified student will be accepted, `False` otherwise.
 
@@ -223,23 +218,23 @@ class Matching:
 
 			matched = False
 			while not matched and student.can_propose():
-				tgt = student.propose()
-				tgt_school = self.schools.get(tgt)
-				matched = tgt_school.check_proposal(identifier)
+				target_id = student.propose()
+				target_school = self.schools.get(target_id)
+				matched = target_school.check_match(identifier)
 
 			if matched:
-				student.update_match(True)
-				reject = tgt_school.handle_proposal(identifier)
-				if reject:
-					reject_obj = self.students.get(reject)
-					reject_obj.update_match(False)
-					students_to_match.append((reject, reject_obj))
+				student.update_match_status(True)
+				unmatched_id = target_school.handle_proposal(identifier)
+				if unmatched_id is not None:
+					unmatched_student = self.students.get(unmatched_id)
+					unmatched_student.update_match_status(False)
+					students_to_match.append((unmatched_id, unmatched_student))
 
 	def check_stability(self):
 		print()
 		print('*** Stability check ***')
 
-		# First: verify that the outcome is stable, i.e. there are no (student, school) pairs that would rather be
+		# Verify that the outcome is stable, i.e. there are no (student, school) pairs that would rather be
 		# matched together than with their current matches
 		unstable_pairs = []
 		for student_id, student in self.students.items():
@@ -250,20 +245,18 @@ class Matching:
 				i = 0
 				found_unstable = False
 				while not found_unstable and i < len(preferred_schools):
-					school_id = preferred_schools[i]
-					school = self.schools[school_id]
+					current_school_id = preferred_schools[i]
+					current_school = self.schools[current_school_id]
 					i += 1
-					if school.prefers_to_matches(student.lottery_number):
+					if current_school.prefers_to_matches(student_id):
 						found_unstable = True
-						unstable_pairs.append((student_id, matched_school))
+						unstable_pairs.append((student_id, (matched_school, rank+1 if rank else None), (current_school_id, i)))
 
 		num_unstable = len(unstable_pairs)
 		print()
 		print(f'The outcome is {"stable" if num_unstable == 0 else "unstable"} ({num_unstable} unstable pairs).')
 
 	def get_results(self, stage, save_to_disk=True):
-		print()
-		print('*** Students ***')
 		bins = {i: [] for i in range(13)}
 		matches = {}
 
@@ -275,31 +268,10 @@ class Matching:
 			else:
 				bins[rank].append(student.lottery_number)
 
-		counts, averages, ranges = [0] * 13, [0] * 13, [(0, 0)] * 13
-		for i, lottery_nums in bins.items():
-			count = len(lottery_nums)
-			average = average_lottery_number(lottery_nums)
-			best, worst = min(lottery_nums), max(lottery_nums)
-			counts[i] = count
-			averages[i] = average
-			ranges[i] = (best, worst)
-
-			if i == len(bins)-1:
-				print(f'Unmatched: {count}.')
-			else:
-				print(f'Matched to choice #{i+1}: {count}.')
-			print(f'\tAverage lottery number: {average}-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
-			print(f'\tBest lottery number: {best}')
-			print(f'\tWorst lottery number: {worst}')
-
 		if save_to_disk:
-			path = 'BackEnd/Data/Simulation/'
-			np.save(path + f'bin_counts_stage{stage}.npy', counts)
-			np.save(path + f'bin_averages_stage{stage}.npy', averages)
-			np.save(path + f'bin_ranges_stage{stage}.npy', ranges)
-			np.save(path + f'matches_stage{stage}.npy', matches)
+			np.save(f'BackEnd/Data/Simulation/bins_stage{stage}.npy', bins, allow_pickle=True)
 
-		return counts, averages, ranges, matches
+		return bins
 
 def run_simulation(students, lottery, schools, capacities, stage):
 	match = Matching(students, lottery, schools, capacities)
@@ -312,7 +284,7 @@ if __name__ == '__main__':
 	path = 'BackEnd/Data/Generated/'
 	start = time.time()
 	students = np.load(path + f'student_rankings_stage{stage}.npy', allow_pickle=True).item()
-	lottery = np.load(path + 'student_lottery_nums.npy', allow_pickle=True).item()
+	lottery = dict(np.load(path + 'student_demographics.npy', allow_pickle=True)[:, (0, 17)])
 	schools = np.load(path + 'school_rankings_open.npy', allow_pickle=True).item()
 	capacities = np.load(path + 'school_capacities.npy', allow_pickle=True).item()
 
@@ -323,8 +295,6 @@ if __name__ == '__main__':
 	start = time.time()
 	match.run()
 	match_time = time.time() - start
-	print()
 	print(f'Matching done in {match_time:.2f} seconds.')
 
 	match.get_results(stage)
-	match.check_stability()
