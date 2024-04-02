@@ -16,7 +16,7 @@ def load_simulation_results(student_id, student_lottery, student_list, stage=2):
 
 	# Load the saved rankings
 	students = np.load(f'student_rankings_stage{stage}.npy', allow_pickle=True).item()  # { 'student_XXXXX': ['YYYYYY', ...], ... }
-	lottery = np.load('student_lottery_nums.npy', allow_pickle=True).item()  # { 'student_XXXXX': '...', ... }
+	lottery = dict(np.load('student_demographics.npy', allow_pickle=True)[:, (0, 17)])  # { 'student_XXXXX': '...', ... }
 	schools = np.load('school_rankings.npy', allow_pickle=True).item()  # { 'YYYYYY': ['lottery', ...], ... }
 	capacities = np.load('school_capacities.npy', allow_pickle=True).item()
 
@@ -30,13 +30,11 @@ def load_simulation_results(student_id, student_lottery, student_list, stage=2):
 	# Run the algorithm
 	return gs.run_simulation(students, lottery, schools, capacities, stage)
 
-@when('click', '#run-simulation')
 def display_plot(event):
 	student_id = None  # document.getElementById('student-id').value
 	student_lottery = None  # document.getElementById('student-lottery').value
 	student_list = None  # document.getElementById('student-list').value.split()
 
-	# TODO call this asynchronously? maybe???
 	counts, averages, ranges, matches = load_simulation_results(student_id, student_lottery, student_list, stage=1)
 	counts = np.array(counts)
 	averages = np.array(averages)
@@ -56,8 +54,6 @@ def display_plot(event):
 	avg_top_choice = averages_int[0]
 	avg_top_five_choice = int(cumulative_averages[4])
 	avg_unmatched = averages_int[-1]
-
-	results = document.getElementById('simulation-results')
 
 	top_choice = document.getElementById('top-choice')
 	top_five_choice = document.getElementById('top-five-choice')
@@ -94,19 +90,35 @@ def display_plot(event):
 	ax1.set_ylabel('Percentage of students matched')
 	ax1.set_facecolor('#ffffff00')
 
-	ax2 = ax1.twinx()
-	ax2.plot(bins, averages_int, color='#37447e', marker='x', linewidth=0.5)
-	bottom, top = ax2.get_ylim()
-	labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f']
-	label_nums = ['0x' + str(i) + '0000000' for i in labels]
-	ticks = [int(l, 0) for l in label_nums]
-	ax2.set_yticks(ticks, labels)
-	ax2.set_ylim(bottom, top)
-	ax2.set_ylabel('Average lottery number (first digit)')
-
 	fig.set_facecolor('#ffffff00')
-
 	display(fig, target='plot', append=False)
 
+@when('click', '#run-simulation')
+async def on_click(event):
+	loader = document.getElementById('simulation-loader')
+	results = document.getElementById('simulation-results')
+
+	# Hide simulation results (if applicable)
+	# print('Hide results')
+	results.classList.add('hide')
+	results.classList.remove('show')
+
+	# Display loading animation
+	# print('Show loader')
+	loader.classList.add('show')
+	loader.classList.remove('hide')
+
+	# Schedule the simulation (slow task) on a different thread, so the UI thread is not blocked
+	# simulation_task = asyncio.to_thread(display_plot, None)
+	# await simulation_task
+	display_plot(None)
+
+	# Hide loading animation
+	# print('Hide loader')
+	loader.classList.add('hide')
+	loader.classList.remove('show')
+
+	# Display simulation results
+	# print('Show results')
 	results.classList.add('show')
 	results.classList.remove('hide')

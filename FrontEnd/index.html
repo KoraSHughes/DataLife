@@ -6,8 +6,8 @@
 	<title>Match Maker</title>
 	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="https://pyscript.net/releases/2024.1.3/core.css" />
-	<script defer type="module" src="https://pyscript.net/releases/2024.1.3/core.js"></script>
+	<link rel="stylesheet" href="https://pyscript.net/releases/2024.3.2/core.css" />
+	<script defer type="module" src="https://pyscript.net/releases/2024.3.2/core.js"></script>
 </head>
 
 <body>
@@ -39,7 +39,7 @@
 				</p>
 			</div>
 			<div class="flex-grow-4">
-				<img src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n" alt="NYU Tandon" style="width: 100%; height: auto;">
+				<img src="" alt="" style="width: 100%; height: auto;">
 			</div>
 		</div>
 
@@ -56,18 +56,18 @@
 				</p>
 				<a class="btn-secondary" href="policies.html">Discover more about admission policies</a>
 			</div>
-			<div class="flex-grow-4">
-				<img
-					src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n"
-					alt="NYU Tandon" style="width: 100%; height: auto;">
+			<div class="flex-grow-4 text-center">
+				<video width="80%" autoplay loop muted>
+					<source src="resources/01_Matching.mov" type="video/mp4" />
+				</video>
 			</div>
 		</div>
 
 		<div id="tentative-matching" class="section flex-row no-wrap space-columns">
-			<div class="flex-grow-4">
-				<img
-					src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n"
-					alt="NYU Tandon" style="width: 100%; height: auto;">
+			<div class="flex-grow-4 text-center">
+				<video width="80%" autoplay loop muted>
+					<source src="resources/02_School-Preference.mov" type="video/mp4" />
+				</video>
 			</div>
 			<div class="flex-grow-5">
 				<p class="heading-3">Tentative matching</p>
@@ -112,7 +112,7 @@
 			<div class="flex-grow-4">
 				<div class="card">
 					<p class="heading-4">Examples of lottery numbers</p>
-					<p class="display">3a4bdc7f-8e91-0c2a-6f5d-1b9e6a38d047</p>
+					<p id="lottery-example" class="display">3a4bdc7f-8e91-0c2a-6f5d-1b9e6a38d047</p>
 				</div>
 				<div class="card">
 					<p class="heading-4">How good is each digit?</p>
@@ -238,8 +238,7 @@
 			</div>
 			<div class="flex-grow-4">
 				<img
-					src="https://engineering.nyu.edu/sites/default/files/styles/content_header_default_1x/public/2018-09/campus-convocation-2018-sign.jpg?h=69f2b9d0&itok=u8diKT3n"
-					alt="NYU Tandon" style="width: 100%; height: auto;">
+					src="" alt="" style="width: 100%; height: auto;">
 			</div>
 		</div>
 
@@ -256,11 +255,9 @@
 		<a id="run-simulation" class="btn-primary" href="#simulation">
 			Run the simulation
 		</a>
-		<!-- <div id="rough-inputs" class="flex-row">
-			<input id="student-id" type="text" value="student_test">
-			<input id="student-lottery" type="text" value="662a5fde49a14943b750681fe986dcdc">
-			<input id="student-list" type="text" value="25Q670 02M296 06M211 21K728 02M394 19K953 12X446 27Q351 22K630 08X348 22K555 30Q301">
-		</div> -->
+		<div id="simulation-loader" class="flex-row hide">
+			<p>Loading...</p>
+		</div>
 		<div id="simulation-results" class="flex-row space-columns hide">
 			<div>
 				<p id="top-choice" class="body"></p>
@@ -289,6 +286,6 @@
 	</div>
 
 	<script src="script.js"></script>
-	<script type="py" src="../BackEnd/pyscript/application_logic.py" config="../BackEnd/pyscript/config.json"></script>
+	<script type="py" src="../BackEnd/pyscript/application_logic.py" config="../BackEnd/pyscript/config.json" worker></script>
 </body>
 </html>
