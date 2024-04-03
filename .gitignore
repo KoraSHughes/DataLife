@@ -1,6 +1,1 @@
 /.idea/
-/BackEnd/__pycache__/
-/BackEnd/check_gs.ipynb
-/BackEnd/gs_benchmark.py
-/BackEnd/vis.ipynb
-/BackEnd/Data/Generated/school_rankings_id.npy
