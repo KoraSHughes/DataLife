@@ -1,4 +1,5 @@
 from heapq import heappop, heappush, heappushpop
+from pathlib import Path
 import numpy as np
 import time
 
@@ -12,8 +13,8 @@ class Student:
 
 	def propose(self):
 		"""
-		Moves down the preference list by one step, then returns the identifier of the next school the student will propose
-		to (namely, the highest ranked school the student is yet to propose to).
+		Moves down the preference list by one step, then returns the DBN of the next school the student will propose to
+		(namely, the highest ranked school the student is yet to propose to).
 		"""
 
 		self.last_proposal += 1
@@ -31,8 +32,8 @@ class Student:
 
 	def get_result(self):
 		"""
-		Returns the identifier of the school the student was matched with and the position of the school in the
-		preference list (0-based), or `(None, None)` if the student was unmatched.
+		Returns the DBN of the school the student was matched with and the position of the school in the preference
+		list (0-based), or `(None, None)` if the student was unmatched.
 		"""
 		if not self.matched:
 			return None, None
@@ -40,8 +41,8 @@ class Student:
 			return self.ranking[self.last_proposal], self.last_proposal
 
 class School:
-	def __init__(self, identifier, ranking, total_seats):
-		self.identifier = identifier
+	def __init__(self, dbn, ranking, total_seats):
+		self.dbn = dbn
 
 		self.ranking_list = ranking
 		self.ranking = {student_id: rank for rank, student_id in enumerate(ranking)}
@@ -105,8 +106,8 @@ class School:
 		return [], self.non_priority_list, 0, self.total_seats, self.applications_received
 
 class PrioritySchool(School):
-	def __init__(self, identifier, ranking, priority_students, priority_seats, total_seats):
-		super().__init__(identifier, ranking, total_seats)
+	def __init__(self, dbn, ranking, priority_students, priority_seats, total_seats):
+		super().__init__(dbn, ranking, total_seats)
 
 		self.priority_dict = {student_id: student_id in priority_students for student_id in ranking}
 		self.priority_list = []
@@ -202,13 +203,17 @@ class PrioritySchool(School):
 		return self.priority_list, self.non_priority_list, self.priority_seats, self.total_seats, self.applications_received
 
 class Matching:
-	def __init__(self, students, lottery_nums, schools, capacities):
-		self.students = {
-			student_id: Student(student_id, ranking, lottery_nums[student_id]) for student_id, ranking in students.items()
+	def __init__(self, students, student_info, schools, school_info):
+		lottery_idx = 1  # In student_info, the lottery number is found at index 1 of the attribute array
+		capacity_idx = None  # In school_info, the capacity is found at index XYZ of the attribute array
+
+		self.students = { student_id:
+			Student(student_id, ranking, student_info[student_id][lottery_idx]) for student_id, ranking in students.items()
 		}
-		self.schools = {
-			school_id: School(school_id, ranking, capacities[school_id]) for school_id, ranking in schools.items()
+		self.schools = { school_dbn:
+			School(school_dbn, ranking, total_seats=150) for school_dbn, ranking in schools.items()
 		}
+		# school_info[school_dbn][capacity_idx]
 
 	def run(self):
 		students_to_match = list(self.students.copy().items())
@@ -256,7 +261,7 @@ class Matching:
 		print()
 		print(f'The outcome is {"stable" if num_unstable == 0 else "unstable"} ({num_unstable} unstable pairs).')
 
-	def get_results(self, stage, save_to_disk=True):
+	def get_results(self, rs, save_to_disk=True):
 		bins = {i: [] for i in range(13)}
 		matches = {}
 
@@ -269,7 +274,10 @@ class Matching:
 				bins[rank].append(student.lottery_number)
 
 		if save_to_disk:
-			np.save(f'BackEnd/Data/Simulation/bins_stage{stage}.npy', bins, allow_pickle=True)
+			path = f'BackEnd/Data/Simulation/results_rs{rs}/'
+			Path(path).mkdir(parents=True, exist_ok=True)
+			np.save(path + 'bins.npy', bins, allow_pickle=True)
+			np.save(path + 'matches.npy', matches, allow_pickle=True)
 
 		return bins
 
@@ -279,16 +287,17 @@ def run_simulation(students, lottery, schools, capacities, stage):
 	return match.get_results(stage, save_to_disk=False)
 
 if __name__ == '__main__':
-	stage = 1
+	# stage = 1
+	random_state = 1
 
-	path = 'BackEnd/Data/Generated/'
+	path = f'BackEnd/Data/Generated/simulation_results_rs{random_state}/'
 	start = time.time()
-	students = np.load(path + f'student_rankings_stage{stage}.npy', allow_pickle=True).item()
-	lottery = dict(np.load(path + 'student_demographics.npy', allow_pickle=True)[:, (0, 17)])
-	schools = np.load(path + 'school_rankings_open.npy', allow_pickle=True).item()
-	capacities = np.load(path + 'school_capacities.npy', allow_pickle=True).item()
+	students = np.load(path + 'student_rankings.npy', allow_pickle=True).item()
+	student_info = np.load(path + 'student_info.npy', allow_pickle=True).item()
+	schools = np.load(path + 'school_rankings.npy', allow_pickle=True).item()
+	school_info = np.load(path + 'school_info.npy', allow_pickle=True).item()
 
-	match = Matching(students, lottery, schools, capacities)
+	match = Matching(students, student_info, schools, school_info)
 	load_time = time.time() - start
 	print(f'Loading done in {load_time:.2f} seconds.')
 
@@ -297,4 +306,4 @@ if __name__ == '__main__':
 	match_time = time.time() - start
 	print(f'Matching done in {match_time:.2f} seconds.')
 
-	match.get_results(stage)
+	match.get_results(random_state)
