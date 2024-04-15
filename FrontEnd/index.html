@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Match Maker</title>
 	<link rel="stylesheet" href="style.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@200" />
 	<link rel="stylesheet" href="https://pyscript.net/releases/2024.3.2/core.css" />
 	<script defer type="module" src="https://pyscript.net/releases/2024.3.2/core.js"></script>
 </head>
@@ -15,19 +15,19 @@
 
 		<div id="nav-bar" class="flex-row">
 			<div class="nav-left">
-				<a id="btn-home" class="btn-secondary nav-margin-r" href="index.html">Home</a>
-				<a id="btn-about" class="btn-secondary nav-margin-lr" href="about.html">About</a>
-				<a id="btn-contact" class="btn-secondary nav-margin-l" href="contact.html">Contact</a>
+				<a id="btn-home" class="btn-tertiary nav-margin-r" href="index.html">Home</a>
+				<a id="btn-about" class="btn-tertiary nav-margin-lr" href="about.html">About</a>
+				<a id="btn-contact" class="btn-tertiary nav-margin-l" href="contact.html">Contact</a>
 			</div>
 			<div class="logo">
 				<span>Match Maker</span>
 			</div>
 			<div class="nav-right">
-				<a id="run-simulation-header" class="btn-primary" href="#simulation">Run the simulation</a>
+				<a id="run-simulation-header" class="btn-secondary" href="#simulation">Run the simulation</a>
 			</div>
 		</div>
 
-		<div id="landing-text" class="section flex-row no-wrap space-columns">
+		<div id="landing-text" class="section card vivid">
 			<div class="flex-grow-5">
 				<p class="heading-1">
 					The high-school admission process in New York City
@@ -43,18 +43,27 @@
 			</div>
 		</div>
 
-		<div id="algorithm-overview" class="section flex-row no-wrap space-columns">
-			<div class="flex-grow-5">
+		<div class="flex-row justify-center">
+			<a class="btn-primary" href="#algorithm-overview">
+				Discover more<span class="material-symbols-outlined">arrow_downward</span>
+			</a>
+		</div>
+
+		<div id="algorithm-overview" class="section">
+			<div class="flex-grow-5 card grey">
 				<p class="heading-2">What is the matching algorithm?</p>
 				<p class="body">
 					At the core of the admission process is the Gale-Shapley stable matching algorithm. This procedure is designed to
 					assign students to schools in a way that respects both the students' preferences and the ordering of students
-					compiled by each school. At the end of the algorithm, all assignments are ensured to be stable: this means that,
+					compiled by each school.
+				</p>
+				<p class="body">
+					At the end of the algorithm, all assignments are ensured to be stable: this means that,
 					among the schools that would offer them a seat, each student will be admitted to the one they ranked the highest
 					in their preference list. At the same time, this also means that schools will accept the students they ranked the
 					highest.
 				</p>
-				<a class="btn-secondary" href="policies.html">Discover more about admission policies</a>
+				<a class="btn-tertiary" href="policies.html">Discover more about admission policies</a>
 			</div>
 			<div class="flex-grow-4 text-center">
 				<video width="80%" autoplay loop muted>
@@ -63,229 +72,286 @@
 			</div>
 		</div>
 
-		<div id="tentative-matching" class="section flex-row no-wrap space-columns">
+		<div id="tentative-matching" class="section">
 			<div class="flex-grow-4 text-center">
 				<video width="80%" autoplay loop muted>
 					<source src="resources/02_School-Preference.mov" type="video/mp4" />
 				</video>
 			</div>
-			<div class="flex-grow-5">
+			<div class="flex-grow-5 card grey">
 				<p class="heading-3">Tentative matching</p>
 				<p class="body">
 					The key to the process is using tentative matches. As the algorithm progresses, each school holds its seats for
 					the best-ranked students who requested to be admitted up to that point; when a student ranked higher than the
 					current seat holders makes a request, they will be given a seat at the expense of the lowest-ranked student who
-					was matched previously. This is a critical feature of the Gale-Shapley algorithm, as it guarantees that the
+					was matched previously.
+				</p>
+				<p class="body">
+					This is a critical feature of the Gale-Shapley algorithm, as it guarantees that the
 					outcome will always be the same, regardless of the order in which the students are considered. This mechanism
 					encourages students to place their truly preferred schools at the top of their rankings: given the set of
 					schools that would accept a student, the student will always be matched with the one they ranked the highest.
 				</p>
-				<a class="btn-secondary" href="matching.html">Discover more about tentative matching</a>
+				<a class="btn-tertiary" href="matching.html">Discover more about tentative matching</a>
 			</div>
 		</div>
 
-		<div id="list-length" class="section flex-row no-wrap space-columns">
-			<div class="flex-grow-5">
+		<div class="section align-top">
+			<div id="list-length" class="card grey">
 				<p class="heading-3">List length limitation</p>
 				<p class="body">
 					To carry out the matching, the algorithm described above requires students to provide a ranking of all schools
-					in NYC, and schools to provide a ranking of all applying students. While this is feasible for schools, it is
+					in NYC, and schools to provide a ranking of all applying students.
+				</p>
+				<p class="body">
+					While this is feasible for schools, it is
 					unreasonable to expect the students and their families to rank hundreds of schools: for this reason, the student
 					preference list is limited to a maximum of 12 schools. Unfortunately, applying this limit comes at a cost: not
 					all students will be able to find a seat within their top 12 choices, and those who do not are said to be
 					unmatched.
 				</p>
+			</div>
+			<div id="unmatching" class="card grey">
 				<p class="heading-3">Unmatching</p>
 				<p class="body">
 					After the matching process, the Department of Education assigns each unmatched student to a school
 					picked at random from those that still have available seats, ensuring all applying students are admitted to a
-					school. The randomness in the assignment of schools to unmatched students can result in unfortunate matchings,
+					school.
+				</p>
+				<p class="body">
+					The randomness in the assignment of schools to unmatched students can result in unfortunate matchings,
 					such as students being admitted to schools that do not specialize in their subjects of interest, or schools that
 					are very distant from their residence. To avert this possibility, then, it is essential that students give
 					thought to the preference list, maximizing their chances of getting accepted in one of their express choices.
 				</p>
-				<a class="btn-secondary" href="preferences.html">Learn more about compiling the school preference list</a>
+				<a class="btn-tertiary" href="preferences.html">Learn more about compiling the school preference list</a>
 			</div>
 		</div>
 
-		<div id="lottery-number" class="section flex-row no-wrap space-columns">
-			<div class="flex-grow-4">
-				<div class="card">
-					<p class="heading-4">Examples of lottery numbers</p>
-					<p id="lottery-example" class="display">3a4bdc7f-8e91-0c2a-6f5d-1b9e6a38d047</p>
+		<div id="lottery-number" class="section card soft">
+			<div class="flex-col space-rows">
+				<div>
+					<p class="heading-2">Lottery number</p>
+					<p class="subtitle">
+						One of the most confusing aspects of the admission process is the lottery number. This number is assigned
+						randomly to each student by the Department of Education and plays an important role in the outcome of the
+						matching algorithm.
+					</p>
 				</div>
-				<div class="card">
-					<p class="heading-4">How good is each digit?</p>
-					<p class="helper">Based on the digit itself</p>
-					<div class="flex-row display">
-						<span>0</span>
-						<span>1</span>
-						<span>2</span>
-						<span>3</span>
-						<span>4</span>
-						<span>5</span>
-						<span>6</span>
-						<span>7</span>
-						<span>8</span>
-						<span>9</span>
-						<span>a</span>
-						<span>b</span>
-						<span>c</span>
-						<span>d</span>
-						<span>e</span>
-						<span>f</span>
+				<div class="section narrow align-top">
+					<div class="flex-grow-4 card border">
+						<p class="heading-3">What does it do?</p>
+						<p class="body">
+							The lottery number's purpose is tie-breaking: regardless of the specific
+							<a href="policies.html">ranking policy</a>
+							adopted by each school, the sheer size of the applicant pool means there likely will be multiple students with
+							the same score. In such a case, the order of the tied students is decided thanks to the lottery number.
+						</p>
 					</div>
-					<div class="gradient gn-yl-rd"></div>
-					<div class="flex-row">
-						<p class="helper">Best</p>
-						<p class="helper">Worst</p>
+					<div class="flex-grow-5 card border">
+						<p class="heading-3">Why does it matter?</p>
+						<p class="body">
+							For many schools, a good lottery number might be the key factor in getting accepted: it is hard to overstate the
+							significance of this element of the admission process.
+						</p>
+						<p class="body">
+							One critical feature of the lottery number is the fact that, once it is assigned to a student, it is unique:
+							it is the same for all schools and it will be used to break any ties that affect the student.
+						</p>
 					</div>
-				</div>
-				<div class="card">
-					<p class="heading-4">How relevant is each digit?</p>
-					<p class="helper">Based on the position of the digit</p>
-					<div class="flex-row display">
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>-</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>-</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>-</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>-</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-						<span>x</span>
-					</div>
-					<div class="gradient grayscale"></div>
-					<div class="flex-row">
-						<p class="helper">Most relevant</p>
-						<p class="helper">Least relevant</p>
+					<div class="flex-grow-3 card border">
+						<p class="heading-3">What can I do?</p>
+						<p class="body">
+							Given the importance of the lottery number, the way the preference list is compiled should heavily take into
+							account how good the value is, as it can sway the chances of matching in a significant way.
+						</p>
 					</div>
 				</div>
-			</div>
-			<div class="flex-grow-5">
-				<p class="heading-2">Lottery number</p>
-				<p class="subtitle">
-					One of the most confusing aspects of the admission process is the lottery number. This number is assigned
-					randomly to each student by the Department of Education and plays an important role in the outcome of the
-					matching algorithm.
-				</p>
-				<p class="heading-3">What does it do?</p>
-				<p class="body">
-					The lottery number's purpose is tie-breaking: regardless of the specific
-					<a href="policies.html">ranking policy</a>
-					adopted by each school, the sheer size of the applicant pool means there likely will be multiple students with
-					the same score. In such a case, the order of the tied students is decided thanks to the lottery number. For many
-					schools, a good lottery number might be the key factor in getting accepted: it is hard to overstate the
-					significance of this element of the admission process.
-				</p>
-				<p class="body">
-					One critical feature of the lottery number is the fact that, once it is assigned to a
-					student, it is unique: it is the same for all schools and it will be used to break any ties that affect the
-					student. As a result, the way the
-					<a href="preferences.html">preference list</a>
-					is compiled should heavily take into account the assigned lottery number, as it can sway the chances of matching
-					in a significant way.
-				</p>
+				<div class="section narrow align-top">
+					<div class="flex-grow-1 flex-col space-rows">
+						<div class="card white">
+							<p class="heading-3">What does it look like?</p>
+							<p class="body">
+								The lottery number does not necessarily look like a number. This is because it is encoded in hexadecimal code, meaning it
+								will include the digits, 0-9, as well as the letters from A to F:
+							</p>
+							<p id="lottery-example" class="display text-center">3a4bdc7f-8e91-0c2a-6f5d-1b9e6a38d047</p>
+						</div>
+						<div class="card accent">
+							<p class="heading-3">In a nutshell</p>
+							<p class="body">
+								When evaluating the lottery number, the most important digits to examine are the first six: the lower they
+								are, the better.
+							</p>
+							<p class="body">
+								Remember that the digits are ordered 0-9, then A-F: a lottery number starting with 0 is very good, one
+								starting with 5 is pretty good, but one starting with E is very bad.
+							</p>
+						</div>
+					</div>
+					<div class="flex-grow-1 card white">
+						<p class="heading-3">How are lottery numbers compared?</p>
+						<p class="body">
+							Starting from the first digit to the left, lower digits will be ranked ahead of higher digits,
+							and if the specific digits being compared are the same, then the next position in the lottery numbers is
+							examined.
+						</p>
+						<p class="body">
+							This comparison is repeated until two digits in the same position are found to be different: this is guaranteed
+							to happen, as no two students can have the same lottery number. In practice, the comparison typically never
+							goes further than the 6th digit out of 32.
+						</p>
+						<div class="lottery-vis">
+							<p class="heading-4">How good is each digit?</p>
+							<p class="helper">Based on the digit itself</p>
+							<div class="flex-row display">
+								<span>0</span>
+								<span>1</span>
+								<span>2</span>
+								<span>3</span>
+								<span>4</span>
+								<span>5</span>
+								<span>6</span>
+								<span>7</span>
+								<span>8</span>
+								<span>9</span>
+								<span>a</span>
+								<span>b</span>
+								<span>c</span>
+								<span>d</span>
+								<span>e</span>
+								<span>f</span>
+							</div>
+							<div class="gradient gn-yl-rd"></div>
+							<div class="flex-row">
+								<p class="helper">Best</p>
+								<p class="helper">Worst</p>
+							</div>
+						</div>
+						<div class="lottery-vis">
+							<p class="heading-4">How relevant is each digit?</p>
+							<p class="helper">Based on the position of the digit</p>
+							<div class="flex-row display">
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>-</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>-</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>-</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>-</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+								<span>x</span>
+							</div>
+							<div class="gradient grayscale"></div>
+							<div class="flex-row">
+								<p class="helper">Most relevant</p>
+								<p class="helper">Least relevant</p>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
-		<div id="lottery-evaluation" class="section flex-row no-wrap space-columns">
-			<div class="flex-grow-5">
-				<p class="heading-3">Evaluating your lottery number</p>
-				<p class="body">
-					By now, the relevance of the lottery number should be well established. You might notice, however, that this
-					number does not necessarily look like a number: this is because it is encoded in hexadecimal code, meaning it
-					will include the digits 0-9 as well as the letters A-F. Nonetheless, the way these numbers are compared is very
-					straightforward.
-				</p>
-				<p class="body">
-					Starting from the first digit to the left, lower digits will be ranked ahead of higher digits,
-					and if the specific digits being compared are the same, then the next position in the lottery numbers is
-					examined. This comparison is repeated until two digits are found that are different (this is guaranteed to
-					happen, as no two students can have the same lottery number); in practice, the comparison typically never goes
-					further than the 6th digit out of 32. To summarize: when evaluating the lottery number, the most important
-					digits to examine are the first six, and the lower they are, the better. Remember that the digits are ordered
-					0-9, then A-F: a lottery number starting with 0 is very good, one starting with 5 is pretty good, but one
-					starting with E is very bad.
-				</p>
-			</div>
-			<div class="flex-grow-4">
-				<img
-					src="" alt="" style="width: 100%; height: auto;">
+		<div id="simulation" class="section card border">
+			<div class="flex-col">
+				<p class="heading-2">The algorithm in action</p>
+				<div class="section nested stretch">
+					<div class="flex-grow-1">
+						<p class="body">
+							Now that we explained the basics of the matching algorithm, try to run a simplified simulation. Here, the numbers are
+							roughly the same as in the NYC high school admission process, but the schools order students solely based on their
+							lottery numbers, while the students select and rank the schools at random. While this simulation does not cover all
+							the nuances of the admission process, it will give you a rough idea of the outcome.
+						</p>
+					</div>
+					<div class="flex-grow-1 flex-col space-rows justify-start">
+						<div class="section narrow justify-start">
+							<div id="run-simulation-py">
+								<a id="run-simulation" class="btn-primary">
+									Run the simulation<span class="material-symbols-outlined">south_east</span>
+								</a>
+							</div>
+							<a id="btn-add-data" class="btn-secondary">
+								Add data<span class="material-symbols-outlined">add</span>
+							</a>
+							<a id="btn-remove-data" class="btn-secondary hide">
+								Remove data<span class="material-symbols-outlined">remove</span>
+							</a>
+						</div>
+						<div id="choices" class="section narrow justify-start hide">
+							<div id="custom-lottery" class="btn-secondary input">
+								<span class="material-symbols-outlined">numbers</span>
+								<input name="custom-lottery" placeholder="Lottery number" size="40"></input>
+							</div>
+							<datalist id="school-list"></datalist>
+							<div id="choice-1" class="btn-secondary input">
+								<span class="material-symbols-outlined">search</span>
+								<input name="choice-1" placeholder="Choice 1" size="18" list="school-list"></input>
+							</div>
+							<a id="add-choice" class="btn-secondary icon hide"><span class="material-symbols-outlined">add</span></a>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
-	</div>
-
-	<div id="simulation" class="flex-col highlight">
-		<p class="heading-2">First simulation</p>
-		<p class="body text-center">
-			Now that we explained the basics of the matching algorithm, try to run a simplified simulation. Here, the numbers are
-			roughly the same as in the NYC high school admission process, but the schools order students solely based on their
-			lottery numbers, while the students select and rank the schools at random. While this simulation does not cover all the
-			nuances of the admission process, it will give you a rough idea of the outcome.
-		</p>
-		<a id="run-simulation" class="btn-primary" href="#simulation">
-			Run the simulation
-		</a>
-		<div id="simulation-loader" class="flex-row hide">
-			<p>Loading...</p>
-		</div>
-		<div id="simulation-results" class="flex-row space-columns hide">
-			<div>
-				<p id="top-choice" class="body"></p>
-				<p id="top-five-choice" class="body"></p>
-				<p id="unmatched" class="body"></p>
-				<p id="customized" class="body"></p>
+		<div id="simulation-results" class="section align-top">
+			<div class="card soft flex-grow-1">
+				<p id="pct-unmatched" class="huge">14%</p>
+				<p class="heading-3">of the applicants went unmatched.</p>
+				<p id="num-unmatched" class="body"></p>
+				<p id="med-unmatched" class="body"></p>
 			</div>
-			<div id="plot"></div>
+			<div id="plot" class="flex-grow-1">
+			</div>
 		</div>
 	</div>
 
 	<div id="footer" class="flex-col footer">
 		<div id="footer-buttons" class="flex-row">
 			<div class="nav-left">
-				<a id="btn-home-footer" class="btn-secondary nav-margin-r" href="index.html">Home</a>
-				<a id="btn-about-footer" class="btn-secondary nav-margin-lr" href="about.html">About</a>
-				<a id="btn-contact-footer" class="btn-secondary nav-margin-l" href="contact.html">Contact</a>
+				<a id="btn-home-footer" class="btn-tertiary nav-margin-r" href="index.html">Home</a>
+				<a id="btn-about-footer" class="btn-tertiary nav-margin-lr" href="about.html">About</a>
+				<a id="btn-contact-footer" class="btn-tertiary nav-margin-l" href="contact.html">Contact</a>
 			</div>
 			<div class="logo">
 				<span>Match Maker</span>
 			</div>
 			<div class="nav-right">
-				<span class="btn-secondary">Follow us on social media</span>
+				<span class="btn-tertiary">Follow us on social media</span>
 			</div>
 		</div>
 	</div>
 
-	<script src="script.js"></script>
+	<script type="module" src="script.js"></script>
 	<script type="py" src="../BackEnd/pyscript/application_logic.py" config="../BackEnd/pyscript/config.json" worker></script>
 </body>
 </html>
