@@ -205,15 +205,14 @@ class PrioritySchool(School):
 class Matching:
 	def __init__(self, students, student_info, schools, school_info):
 		lottery_idx = 1  # In student_info, the lottery number is found at index 1 of the attribute array
-		capacity_idx = None  # In school_info, the capacity is found at index XYZ of the attribute array
+		capacity_idx = 1  # In school_info, the capacity is found at index XYZ of the attribute array
 
 		self.students = { student_id:
 			Student(student_id, ranking, student_info[student_id][lottery_idx]) for student_id, ranking in students.items()
 		}
 		self.schools = { school_dbn:
-			School(school_dbn, ranking, total_seats=150) for school_dbn, ranking in schools.items()
+			School(school_dbn, ranking, school_info[school_dbn][capacity_idx]) for school_dbn, ranking in schools.items()
 		}
-		# school_info[school_dbn][capacity_idx]
 
 	def run(self):
 		students_to_match = list(self.students.copy().items())

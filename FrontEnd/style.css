@@ -260,8 +260,8 @@ input::-webkit-calendar-picker-indicator {
 	background: linear-gradient(
 		to top,
 		white 50%,
-		var(--color-accent) 50%)
-	;
+		var(--color-accent) 50%
+	);
 	background-size: 100% 210%;
 	background-position: right 2.5%;
 	transition: all .1s ease-in-out;
@@ -280,6 +280,7 @@ a.btn-primary:hover, a.btn-primary:active {
 	border: 2px solid var(--color-text-dark);
 	padding: 7.5px 15px;
 	border-radius: 50px;
+	color: var(--color-text-dark);
 	font-size: 18px;
 	font-weight: 600;
 	letter-spacing: 0.5px;
@@ -304,6 +305,7 @@ a.btn-secondary:hover, a.btn-secondary:active {
 }
 
 .btn-tertiary {
+	color: var(--color-text-dark);
 	font-size: 18px;
 	font-weight: 600;
 	letter-spacing: 0.5px;
