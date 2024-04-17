@@ -1,14 +1,9 @@
-import pandas as pd
-import numpy as np
-import os
+import uuid  # lottery numbers
 import random
+import numpy as np  # additional randomization with normal distribution
+import pandas as pd  # handling csv data from schools
+from difflib import SequenceMatcher  # matching school names
 
-import uuid
-from difflib import SequenceMatcher
-from tqdm import tqdm
-
-
-cwd = os.getcwd()
 # School/Student Information
 MAX_NUM_SCHOOLS = 12
 LARGE_NUM = 9999999999  # used to set upperbound for sampling range
@@ -18,6 +13,10 @@ mean_school_cap = 145  # capacity
 std_school_cap = 128.5
 mean_ens = 2.453505  # ens = expected number of students applied per seat
 std_ens = 4.072874
+
+# stats on students
+mean_stud_score = 68  # gpa on 100% scale
+std_stud_score = 8.89
 
 # distributions according to: https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school
 screen_dist = [94, 89.66, 82.75, 76.33]  # https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school/screened-admissions
@@ -65,7 +64,7 @@ class Student:
     def get_rand_score(self, new_seed):
         """ generates a random gpa based on assumed normal distribution of nyc highschool data """
         random.seed(new_seed)
-        num = round(np.random.normal(68, 8.89, 1)[0], 2)
+        num = round(np.random.normal(mean_stud_score, std_stud_score, 1)[0], 2)
         if num < 0:
             num = 0
         elif num > 100:
@@ -184,7 +183,7 @@ def add_fake_gpa(students):
 def get_distributions():
     """ returns quantile distribution of gpa based on real data 
     used for seat/screen calculations """
-    student_df = pd.read_csv(cwd+"/Data/student_info_with_demographics.csv")
+    student_df = pd.read_csv("/Data/student_info_with_demographics.csv")
     student_df = add_fake_gpa(student_df)
     
     edopt_dist = [student_df["fake_gpa"].quantile(i/3) for i in range(2, 0, -1)]
@@ -241,7 +240,7 @@ def simulate_student_choices(students, schools):
     popularity_weights = [schools[schol].popularity for schol in full_random]
     
     school_to_student = dict([[str(schol), set()] for schol in schools])  # helper for school choices
-    for stud in tqdm(students.values()):
+    for stud in students.values():
         # for each student, choose schools depending on strategy based on seed
         ranks = []
         random.seed(str(stud))
@@ -266,7 +265,7 @@ def simulate_school_choices(school_to_student, students, schools):
     """
     choices = {}
     # sort students by school policy
-    for schol_id, student_ids in tqdm(school_to_student.items()):
+    for schol_id, student_ids in school_to_student.items():
         ranks = []
         if schools[schol_id].policy == 1:
             ranks = sorted(student_ids, key=lambda stud_id: students[stud_id].lottery)
@@ -358,3 +357,7 @@ if __name__ == '__main__':
     print(student_prefs)
     print("\nSCHOOL PREFERENCES:")
     print(school_prefs)
+    
+    
+
+# TODO: maybe make this into a python package
