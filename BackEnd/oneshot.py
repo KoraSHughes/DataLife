@@ -1,6 +1,6 @@
 import uuid  # lottery numbers
 import random
-import numpy as np  # additional randomization with normal distribution
+import numpy as np  # additional randomization with normal distribution + file I/O in main()
 import pandas as pd  # handling csv data from schools
 from difflib import SequenceMatcher  # matching school names
 
@@ -351,13 +351,27 @@ def oneshot_with_input(seed, lottery_num, my_schools, gpa=-1, student_name="inje
 
 
 if __name__ == '__main__':
-    simstate = 1
-    student_prefs, school_prefs, students, schools = oneshot(simstate, True)
-    print("STUDENT PREFERENCES:")
-    print(student_prefs)
-    print("\nSCHOOL PREFERENCES:")
-    print(school_prefs)
-    
-    
+    simstate = input("Simulation state (int):  ")  # basic user input for 1shot code
+    print("running simulation...")
+    student_prefs, school_prefs, students, schools = oneshot(int(simstate), True)
+    # SAVE RESULTS
+    do_save = input("\nsave the results? (y/n)  ")
+    if str(do_save).lower() == "y":
+        np.save("student_rankings.npy", student_prefs)
+        np.save("school_rankings.npy", school_prefs)
 
-# TODO: maybe make this into a python package
+        list_students = dict([[str(stud), stud.to_list()] for stud in students.values()])
+        np.save("student_info.npy", list_students)
+        list_schools = dict([[str(schol), schol.to_list()] for schol in schools.values()])
+        np.save("school_info.npy", list_schools)
+            
+        print("Simulation state", simstate, "saved at local directory!")
+    # DISPLAY RESULTS
+    do_show = input("\nshow results? (y/n)")
+    if str(do_show).lower() == "y":
+        print("STUDENT PREFERENCES:")
+        print(student_prefs)
+        print("\nSCHOOL PREFERENCES:")
+        print(school_prefs)
+
+# TODO: maybe make this into a python package: https://www.youtube.com/watch?v=tEFkHEKypLI
