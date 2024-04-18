@@ -6,7 +6,11 @@ from difflib import SequenceMatcher  # matching school names
 
 # School/Student Information
 MAX_NUM_SCHOOLS = 12
-LARGE_NUM = 9999999999  # used to set upperbound for sampling range
+LARGE_NUM = 10**7  # upperbound for sampling range on # students, # schools, & student/school seeds
+""" NOTE: LARGE_NUM should ideally be > n*s : 
+n = the number of unique simulations states you want to run, s = the max number of students in your simulation
+n for LARGE_NUM=10^8th with nyc data is approximately 140, aka 140 totally unique simulations & nCr(s,140*s) permutations
+"""
 
 # stats on nyc schools
 mean_school_cap = 145  # capacity
@@ -205,12 +209,14 @@ screened = lambda x: set_place(x, screen_dist)
 def generate_students(seed, size=71250):
     """ generate students based on seeded random sampling """
     random.seed(seed)
-    return [Student("Student #"+str(i)) for i in random.sample(range(LARGE_NUM*size), size)]
+    assert LARGE_NUM > size, f"{LARGE_NUM=} must be > {size=} for simulation to run properly"
+    return [Student("Student #"+str(i)) for i in random.sample(range(LARGE_NUM), size)]
 
 def generate_schools(seed, size=437):
     """ generate schools based on seeded random sampling """
     random.seed(seed)
-    return [School("School #"+str(i)) for i in random.sample(range(LARGE_NUM*size), size)]
+    assert LARGE_NUM > size, f"{LARGE_NUM=} must be > {size=} for simulation to run properly"
+    return [School("School #"+str(i)) for i in random.sample(range(LARGE_NUM), size)]
 
 def generate_nyc_schools(seed, school_info_dir="Data/schools_info.npy"):
     """ generate schools based on nyc school applicant data """
@@ -367,11 +373,11 @@ if __name__ == '__main__':
             
         print("Simulation state", simstate, "saved at local directory!")
     # DISPLAY RESULTS
-    do_show = input("\nshow results? (y/n)")
+    do_show = input("\nshow results? (y/n)  ")
     if str(do_show).lower() == "y":
-        print("STUDENT PREFERENCES:")
+        print("\nSTUDENT PREFERENCES:")
         print(student_prefs)
-        print("\nSCHOOL PREFERENCES:")
+        print("\n\nSCHOOL PREFERENCES:")
         print(school_prefs)
 
 # TODO: maybe make this into a python package: https://www.youtube.com/watch?v=tEFkHEKypLI
