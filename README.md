@@ -1,6 +1,28 @@
 # DataLife
 A current research project partnership between NYU, Politecnico di Milano, and Rutgers aimed at improving NYC highschool admissions efficiency and transparency.
 
+## Tour of Important Documents:
+- FrontEnd
+  - index.html = main page
+    - style.css = visual definitions for the whole frontend
+  - script.js = takes the results of the simulation and generates the plots
+- BackEnd:
+  - oneshot.py = main simulation code which creates the student/school objects/rankings
+    - load.ipynb = playground for oneshot.py
+  - gale_shapley.py = main matching code that returns which students are admitted into which schools
+  - application_logic.py = calls oneshot function + gale-shapely matching and passes results to frontend
+ 
+## Simulation Information: (variable configurations for each stage)
+- Student Strategy = [a,b] : a = student.selection_policy, b = student.ranking_policy (defined around oneshot.py lines 50-54)
+  - stage 1 = [0,0] = students choose schools randomly with no order
+  - stage 2 = [0,1] = students choose schools randomly but order by the school's likeability index, descending
+  - stage 3 = [1,0] = students choose schools via popularity-weighted selection and placed in a randomized order
+  - stage 4 = [1,1] = students choose schools via popularity-weighted selection and rank them based on the likeability index, descending
+- School Strategy = [c] : c = school.policy (defined around oneshot.py line 113)
+  - stages 1-4 = school sorts students that applied based on lottery number descending = [1]
+  - stage 5 = school sorts students that applied based on seat number descending with lottery number as a tiebreaker = [2]
+  - stage 6 = school sorts students that applied based on screen number descending with lottery number as a tiebreaker = [3]
+> Note: By default, all generation functions (oneshot.py lines 210-235) randomly select each of these parameters with equal probability. This means the default state of the simulation is stage 7. Also, the seat and screen distributions are defined in oneshot.py lines 28-29 and implemented in lines 199-208.
 
 ## Links:
 - Code: https://github.com/KoraSHughes/DataLife
@@ -17,7 +39,7 @@ A current research project partnership between NYU, Politecnico di Milano, and R
 
 ## How to run the web server
 
-- Using VSCode: install the **Live Server** extension, then right click on index.html and select 'Open with Live Server' from the context menu.
+- Using VSCode: install the **Live Server** extension, then right-click on index.html and select 'Open with Live Server' from the context menu.
 
 - Using other IDEs: open a terminal from the FrontEnd directory and run `python3 -m http.server`, then navigate to `localhost:8000`.
 
