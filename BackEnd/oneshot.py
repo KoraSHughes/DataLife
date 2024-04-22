@@ -1,3 +1,5 @@
+# MAIN FILE FOR SIMULATION
+
 import uuid  # lottery numbers
 import random
 import numpy as np  # additional randomization with normal distribution + file I/O in main()
@@ -101,7 +103,7 @@ class Student:
         return self.id
 #     sorted(students, key=lambda x: int(x.lottery, 16))
         
-        
+
 class School:
     def __init__(self, seed, cap=-1, pop=-1, like=-1, name=""):
         # necessary info
@@ -256,6 +258,8 @@ def simulate_student_choices(students, schools):
             ranks = random.choices(population=full_random, weights=popularity_weights, k=stud.num_schools)
         
         # order based on student policy
+        random.seed(str(stud))
+        random.shuffle(ranks)  # randomize list based on student's seed
         if stud.ranking_policy != 1:  # rank by likeability
             ranks.sort(key=lambda schol: schools[schol].likeability, reverse=True)
             # NOTE: ties are handled by how the list was previously sorted which is depended on the seed
