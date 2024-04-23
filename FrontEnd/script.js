@@ -43,6 +43,52 @@ class LotteryNumberExamples {
 	}
 }
 
+class LotteryExplainers {
+	constructor() {
+		this.expand1 = document.getElementById('expand-1');
+		this.expand2 = document.getElementById('expand-2');
+		this.expand3 = document.getElementById('expand-3');
+
+		this.blob1 = document.getElementById('blob-1');
+		this.blob2 = document.getElementById('blob-2');
+		this.blob3 = document.getElementById('blob-3');
+	}
+
+	initializeListeners() {
+		const self = this;
+
+		this.expand1.addEventListener('click', () => {
+			if (self.expand1.children[0].innerText === 'open_in_full') {
+				self.blob1.classList.remove('hide');
+				self.expand1.children[0].innerText = 'close_fullscreen';
+			} else if (self.expand1.children[0].innerText === 'close_fullscreen') {
+				self.blob1.classList.add('hide');
+				self.expand1.children[0].innerText = 'open_in_full';
+			}
+		});
+
+		this.expand2.addEventListener('click', () => {
+			if (self.expand2.children[0].innerText === 'open_in_full') {
+				self.blob2.classList.remove('hide');
+				self.expand2.children[0].innerText = 'close_fullscreen';
+			} else if (self.expand2.children[0].innerText === 'close_fullscreen') {
+				self.blob2.classList.add('hide');
+				self.expand2.children[0].innerText = 'open_in_full';
+			}
+		});
+
+		this.expand3.addEventListener('click', () => {
+			if (self.expand3.children[0].innerText === 'open_in_full') {
+				self.blob3.classList.remove('hide');
+				self.expand3.children[0].innerText = 'close_fullscreen';
+			} else if (self.expand3.children[0].innerText === 'close_fullscreen') {
+				self.blob3.classList.add('hide');
+				self.expand3.children[0].innerText = 'open_in_full';
+			}
+		});
+	}
+}
+
 class SchoolChoice {
 	constructor(num) {
 		this.num = num;
@@ -234,9 +280,16 @@ class UserData {
 }
 
 class DataVisualizer {
-	constructor(bins, matches, seats) {
-		this.bins = bins.map(bin => bin.map(num => num.replaceAll('-', '')));;
+	constructor(students, schools, bins, matches, seats) {
+		// { student_id: { lottery: ..., selection: ..., ranking: ..., list_length: ..., gpa: ... } }
+		this.studentInfo = students;
+		// { school_dbn: { policy: ..., popularity: (true apps/total apps), likeability: (propto capacity) } }
+		this.schoolInfo = schools;
+
+		this.bins = bins.map(bin => bin.map(num => num.replaceAll('-', '')));
+		// { student_id: { dbn: (matched school or null), rank: (matched position or null) } }
 		this.matches = matches;
+		// { school_dbn: { matched_students: ..., total_seats: ..., true_applicants: ... } }
 		this.seats = seats;
 
 		this.el = document.getElementById('simulation-results');
@@ -258,7 +311,9 @@ class DataVisualizer {
 		this.focusSubtitle = document.getElementById('focus-subtitle');
 		this.focusPar1 = document.getElementById('focus-par-1');
 		this.focusPar2 = document.getElementById('focus-par-2');
-		this.plot = document.getElementById('plot');
+
+		this.plotPrimary = document.getElementById('plot-primary');
+		this.plotSecondary = document.getElementById('plot-secondary');
 
 		this.computeAggregateStats();
 		this.attachListeners();
@@ -271,11 +326,31 @@ class DataVisualizer {
 
 		this.totalSchools = this.seats.size;
 
+		let sumListLength = 0;
+		let policyMatrix = [[0, 0], [0, 0]];
+		let selIdx, rnkIdx;
+		for (let val of this.studentInfo.values()) {
+			sumListLength += val.get('list_length');
+			selIdx = val.get('selection') == 'random' ? 0 : 1;
+			rnkIdx = val.get('selection') == 'random' ? 0 : 1;
+			policyMatrix[selIdx][rnkIdx] += 1;
+		}
+		this.avgListLength = sumListLength / this.matches.size;
+		this.studentPolicyMatrix = policyMatrix;
+
+		let admissions = new Map().set('open', 0).set('EdOpt', 0).set('screen', 0);
+		let policy;
+		for (let val of this.schoolInfo.values()) {
+			policy = val.get('policy');
+			admissions.set(policy, admissions.get(policy) + 1);
+		}
+		this.admissionPolicies = admissions;
+
 		let totalCapacity = 0;
 		let seatsUnfilled = 0;
 		let schoolsUnfilled = 0;
 		for (let val of this.seats.values()) {
-			let offers = val.get('accepted_students');
+			let offers = val.get('matched_students');
 			let seats = val.get('total_seats');
 			totalCapacity += seats;
 			seatsUnfilled += (seats - offers);
@@ -308,6 +383,14 @@ class DataVisualizer {
 		let medianTop, combinedBins, medianTopFive, medianUnmatched;
 
 		switch (targetData) {
+			case 'preference-strategy':
+				par1 = this.studentPolicyMatrix;
+				break;
+
+			case 'admission-policies':
+				par1 = this.admissionPolicies;
+				break;
+
 			case 'students-top':
 				medianTop = this.bins[0][Math.floor(this.bins[0].length / 2)];
 
@@ -386,7 +469,7 @@ class DataVisualizer {
 			.padding(0.2);
 
 		// Append the SVG container
-		const svg = d3.select('#plot')
+		const svg = d3.select('#plot-secondary')
 			.append('svg')
 			.attr('width', width)
 			.attr('height', height)
@@ -419,7 +502,7 @@ class DataVisualizer {
 
 	plotCounts(indexFocused, cumulative=false) {
 		// Clear any existing plots
-		this.plot.innerHTML = '';
+		this.plotPrimary.innerHTML = '';
 
 		// set the dimensions and margins of the graph
 		const margin = { top: 30, right: 30, bottom: 30, left: 30 };
@@ -443,7 +526,7 @@ class DataVisualizer {
 			.range([height - margin.bottom, margin.top]);
 
 		// Append the SVG container
-		const svg = d3.select('#plot')
+		const svg = d3.select('#plot-primary')
 			.append('svg')
 			.attr('width', width)
 			.attr('height', height)
@@ -486,6 +569,7 @@ class DataVisualizer {
 		this.pTotalStudents.nodeValue = this.totalStudents.toLocaleString();
 		this.pTotalSchools.nodeValue = this.totalSchools.toLocaleString();
 		this.pTotalCapacity.nodeValue = this.totalCapacity.toLocaleString();
+		this.pListLength.nodeValue = this.avgListLength.toFixed(1);
 
 		this.pStudentsTop.nodeValue = (100 * this.ratios[0]).toFixed(0) + '% (' + this.counts[0].toLocaleString() + ')';
 		this.pStudentsFive.nodeValue = (100 * this.ratioFive).toFixed(0) + '% (' + this.countFive.toLocaleString() + ')';
@@ -495,11 +579,15 @@ class DataVisualizer {
 		this.pSeatsUnfilled.nodeValue = this.seatsUnfilled.toLocaleString();
 	}
 
-	refreshFocus(number, subtitle, par1, par2, plot, index) {
+	refreshFocus(number = '', subtitle = '', par1 = '', par2 = '', plot = '', index = -1) {
 		this.focusNumber.innerText = number;
 		this.focusSubtitle.innerText = subtitle;
 		this.focusPar1.innerText = par1;
 		this.focusPar2.innerText = par2;
+
+		// Clear plots
+		this.plotPrimary.innerHTML = '';
+		this.plotSecondary.innerHTML = '';
 
 		if (plot === 'counts')
 			this.plotCounts(index);
@@ -514,11 +602,15 @@ window.addEventListener('load', () => {
 	const lotteryNums = new LotteryNumberExamples();
 	lotteryNums.iterate();
 
+	const lotteryExplainers = new LotteryExplainers();
+	lotteryExplainers.initializeListeners();
+
 	userData = new UserData();
 
-	document.getElementById('run-simulation').addEventListener('click', e => {
-		console.log('JS event listener');
-		document.getElementById('plot').innerHTML = '';
+	document.getElementById('run-simulation').addEventListener('click', () => {
+		document.getElementById('simulation-results').classList.add('hide');  // Hide simulation results (if applicable)
+		document.getElementById('simulation-loader').classList.remove('hide');  // Display loader
+		document.getElementById('plot-primary').innerHTML = '';
 	});
 });
 
@@ -527,11 +619,14 @@ window.addEventListener('py:all-done', () => {
 });
 
 window.addEventListener('py-backend-done', () => {
+
 	const visualizer =
-		new DataVisualizer(window.py_bins, window.py_matches, window.py_seats);
+		new DataVisualizer(window.py_students, window.py_schools, window.py_bins, window.py_matches, window.py_seats);
 
 	visualizer.refreshNutritionalLabel();
 	visualizer.show();
+
+	document.getElementById('simulation-loader').classList.add('hide');  // Hide loader
 })
 
 export { pyDoneEvent, userData };

@@ -560,6 +560,16 @@ p > span.material-symbols-outlined {
 	cursor: pointer;
 }
 
-#plot {
+#plot-primary, #plot-secondary {
 	padding: 1vh 1vw;
+}
+
+p.heading-3 + * > .material-symbols-outlined {
+	font-size: 32px;
+	margin: 0 0 2.5vh;
+	cursor: pointer;
+}
+
+.remove-margin:has(+ .hide) {
+	margin-bottom: -2.5vh;
 }
