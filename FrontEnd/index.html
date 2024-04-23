@@ -284,7 +284,7 @@
 			<div class="flex-col">
 				<p class="heading-2">The algorithm in action</p>
 				<div class="section nested stretch">
-					<div class="flex-grow-1">
+					<div class="flex-grow-3">
 						<p class="body">
 							Now that we explained the basics of the matching algorithm, try to run a simplified simulation. Here, the numbers are
 							roughly the same as in the NYC high school admission process, but the schools order students solely based on their
@@ -292,10 +292,10 @@
 							the nuances of the admission process, it will give you a rough idea of the outcome.
 						</p>
 					</div>
-					<div class="flex-grow-1 flex-col space-rows justify-start">
+					<div class="flex-grow-5 flex-col space-rows-half justify-start">
 						<div class="section narrow justify-start">
 							<div id="run-simulation-py">
-								<a id="run-simulation" class="btn-primary">
+								<a id="run-simulation" class="btn-primary disabled" href="#simulation-results">
 									Run the simulation<span class="material-symbols-outlined">south_east</span>
 								</a>
 							</div>
@@ -306,31 +306,113 @@
 								Remove data<span class="material-symbols-outlined">remove</span>
 							</a>
 						</div>
-						<div id="choices" class="section narrow justify-start hide">
-							<div id="custom-lottery" class="btn-secondary input">
-								<span class="material-symbols-outlined">numbers</span>
-								<input name="custom-lottery" placeholder="Lottery number" size="40"></input>
+						<div id="custom-data" class="section narrow justify-start hide">
+							<div class="flex-row wrap space-columns">
+								<div id="custom-lottery" class="input">
+									<span class="material-symbols-outlined">numbers</span>
+									<input id="custom-lottery-input" name="custom-lottery" placeholder="Lottery number" size="36"></input>
+								</div>
+								<div id="custom-gpa" class="input">
+									<span class="material-symbols-outlined">grade</span>
+									<input id="custom-gpa-input" name="custom-gpa" placeholder="GPA" size="8"></input>
+								</div>
 							</div>
-							<datalist id="school-list"></datalist>
-							<div id="choice-1" class="btn-secondary input">
-								<span class="material-symbols-outlined">search</span>
-								<input name="choice-1" placeholder="Choice 1" size="18" list="school-list"></input>
+							<div>
+								<datalist id="school-list"></datalist>
+								<div id="choices">
+									<ul>
+										<li id="choice-1" class="flex-row input" draggable="true">
+											<span class="material-symbols-outlined draggable">drag_indicator</span>
+											<input name="choice-1" placeholder="Select a school" size="40" list="school-list"></input>
+											<span class="material-symbols-outlined clickable">cancel</span>
+										</li>
+										<li id="add-choice-li">
+											<a id="add-choice" class="btn-primary icon disabled"><span class="material-symbols-outlined">add</span></a>
+										</li>
+									</ul>
+								</div>
 							</div>
-							<a id="add-choice" class="btn-secondary icon hide"><span class="material-symbols-outlined">add</span></a>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div id="simulation-results" class="section align-top">
-			<div class="card soft flex-grow-1">
-				<p id="pct-unmatched" class="huge">14%</p>
-				<p class="heading-3">of the applicants went unmatched.</p>
-				<p id="num-unmatched" class="body"></p>
-				<p id="med-unmatched" class="body"></p>
-			</div>
-			<div id="plot" class="flex-grow-1">
+		<div id="simulation-loader" class="hide">
+			<p>Loading...</p>
+		</div>
+
+		<div id="simulation-results" class="section hide">
+			<div class="flex-col space-rows-half">
+				<p class="heading-2">Simulation results</p>
+				<div class="section narrow align-top">
+					<div id="nutritional-label" class="card soft flex-grow-3">
+						<div class="label-group">
+							<p class="heading-3">Input data</p>
+							<div class="label-field">
+								<p class="body">Number of applicants:</p>
+								<p id="total-applicants" class="body">71,250</p>
+							</div>
+							<div class="label-field">
+								<p class="body">Number of schools:</p>
+								<p id="total-schools" class="body">439</p>
+							</div>
+							<div class="label-field">
+								<p class="body">Total capacity:</p>
+								<p id="total-capacity" class="body">73,159</p>
+							</div>
+							<div class="label-field">
+								<p class="body">Student preference strategy:</p>
+								<p id="preference-strategy" class="body">
+									popularity-based selection, random ordering<span class="material-symbols-outlined">read_more</span>
+								</p>
+							</div>
+							<div class="label-field">
+								<p class="body">Average preference profile length:</p>
+								<p id="average-list-length" class="body">6.90</p>
+							</div>
+							<div class="label-field">
+								<p class="body">School admission policies:</p>
+								<p id="admission-policies" class="body">combination<span class="material-symbols-outlined">read_more</span></p>
+							</div>
+						</div>
+						<div class="label-group">
+							<p class="heading-3">Student results</p>
+							<div class="label-field">
+								<p class="body">Students matched to their top choice:</p>
+								<p id="students-top" class="body">43% (30,638)<span class="material-symbols-outlined">read_more</span></p>
+							</div>
+							<div class="label-field">
+								<p class="body">Students matched to one of their top 5 choices:</p>
+								<p id="students-top-5" class="body">69% (49,162)<span class="material-symbols-outlined">read_more</span></p>
+							</div>
+							<div class="label-field">
+								<p class="body">Students unmatched:</p>
+								<p id="students-unmatched" class="body">2% (1,437)<span class="material-symbols-outlined">read_more</span></p>
+							</div>
+						</div>
+						<div class="label-group">
+							<p class="heading-3">School results</p>
+							<div class="label-field">
+								<p class="body">Schools not at full capacity:</p>
+								<p id="schools-unfilled" class="body">13% (57)<span class="material-symbols-outlined">read_more</span></p>
+							</div>
+							<div class="label-field">
+								<p class="body">Total seats not filled:</p>
+								<p id="seats-unfilled" class="body">4,120<span class="material-symbols-outlined">read_more</span></p>
+							</div>
+						</div>
+					</div>
+					<div id="focus" class="flex-col space-rows-half flex-grow-2 hide">
+						<div class="card soft">
+							<p id="focus-number" class="huge">2.0%</p>
+							<p id="focus-subtitle" class="heading-3">of the applicants went unmatched.</p>
+							<p id="focus-par-1" class="body">That's 1,437 out of 71,250 students.</p>
+							<p id="focus-par-2" class="body">Their median lottery number starts with the digits F33F.</p>
+						</div>
+						<div id="plot"></div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -352,6 +434,7 @@
 	</div>
 
 	<script type="module" src="script.js"></script>
+	<script src="mini-coi.js"></script>
 	<script type="py" src="../BackEnd/pyscript/application_logic.py" config="../BackEnd/pyscript/config.json" worker></script>
 </body>
 </html>

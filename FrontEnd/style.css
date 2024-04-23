@@ -1,5 +1,6 @@
 :root {
 	--color-accent: #4036ed;
+	--color-accent-disabled: #4036ed88;
 	--color-bg-vivid: #c7c8f6;
 	--color-bg-soft: #edecfc;
 	--color-bg-grey: #fbfbfd;
@@ -37,6 +38,11 @@ input::-webkit-calendar-picker-indicator {
 	opacity: 0;
 }
 
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
 #nav-bar {
 	height: fit-content;
 	margin: 0;
@@ -48,7 +54,7 @@ input::-webkit-calendar-picker-indicator {
 	padding: 0 10vw;
 }
 
-#choices {
+#custom-data {
 	flex-wrap: wrap;
 	margin: 0;
 }
@@ -92,12 +98,20 @@ input::-webkit-calendar-picker-indicator {
 	justify-content: space-around;
 }
 
+.flex-row.wrap {
+	flex-wrap: wrap;
+}
+
 .space-rows {
 	row-gap: 5vh;
 }
 
+.space-rows-half {
+	row-gap: 2.5vh;
+}
+
 .space-columns {
-	column-gap: 5vw;
+	column-gap: 1vw;
 }
 
 .align-top {
@@ -190,6 +204,7 @@ input::-webkit-calendar-picker-indicator {
 }
 
 .body > a {
+	color: var(--color-text-dark);
 	text-decoration: underline;
 }
 
@@ -214,23 +229,23 @@ input::-webkit-calendar-picker-indicator {
 }
 
 .flex-grow-1 {
-	flex: 1 1 0px;
+	flex: 1 0;
 }
 
 .flex-grow-2 {
-	flex: 2 0.5 0px;
+	flex: 2 0;
 }
 
 .flex-grow-3 {
-	flex: 3 0.33 0px;
+	flex: 3 0;
 }
 
 .flex-grow-4 {
-	flex: 4 0.25 0px;
+	flex: 4 0;
 }
 
 .flex-grow-5 {
-	flex: 5 0.2 0px;
+	flex: 5 0;
 }
 
 .show {
@@ -264,7 +279,7 @@ input::-webkit-calendar-picker-indicator {
 	);
 	background-size: 100% 210%;
 	background-position: right 2.5%;
-	transition: all .1s ease-in-out;
+	transition: all .075s ease-in-out;
 }
 
 a.btn-primary {
@@ -274,6 +289,12 @@ a.btn-primary {
 a.btn-primary:hover, a.btn-primary:active {
 	background-position: right 97.5%;
 	color: var(--color-accent);
+}
+
+a.btn-primary.disabled {
+	background: var(--color-accent-disabled);
+	color: white;
+	cursor: not-allowed;
 }
 
 .btn-secondary {
@@ -287,12 +308,6 @@ a.btn-primary:hover, a.btn-primary:active {
 	display: inline-flex;
 	align-items: center;
 	cursor: pointer;
-}
-
-.btn-secondary.input {
-	border-width: 1px;
-	cursor: text;
-	margin: .75vh 0;
 }
 
 a.btn-secondary {
@@ -453,7 +468,7 @@ a > .material-symbols-outlined {
 	margin-right: -.15em;
 }
 
-.input > .material-symbols-outlined {
+.material-symbols-outlined:has(+ input) {
 	margin-left: -.15em;
 	margin-right: .15em;
 }
@@ -465,6 +480,86 @@ a.icon > .material-symbols-outlined {
 
 a.icon {
 	border-width: 1px;
-	padding: 7.5px;
+	padding: 2.5px;
+}
+
+ul {
+	list-style: none;
 	margin: .75vh 0;
+	padding: 0;
+}
+
+li:last-child {
+	border-bottom: none;
+	padding: .5vh .25vw;
+}
+
+.draggable {
+	cursor: all-scroll;
+}
+
+.clickable {
+	cursor: pointer;
+}
+
+.input {
+	padding: 1vh .5vw;
+	border-bottom: 1px solid var(--color-text-dark);
+	cursor: text;
+	margin: .75vh 0;
+}
+
+div.input {
+	display: inline-flex;
+}
+
+.input:has(> *:focus) {
+	border-bottom: 1px solid var(--color-accent);
+}
+
+.label-group {
+	margin: 0 0 2.5vh;
+}
+
+.label-group > p.heading-3 {
+	margin: 0 0 1.5vh;
+}
+
+.label-field {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	justify-content: space-between;
+	column-gap: 2.5vh;
+	padding: .75vh 0;
+	border-bottom: 1px solid var(--color-text-light);
+}
+
+.label-field:last-child {
+	border: none;
+}
+
+.label-field > p.body {
+	margin: 0;
+}
+
+.label-field > p.body:nth-child(2) {
+	text-align: end;
+}
+
+p:has(> span) {
+	display: table;
+}
+
+p > span.material-symbols-outlined {
+	color: var(--color-accent);
+	font-size: 28px;
+	display: table-cell;
+	vertical-align: middle;
+	padding-left: 0.15em;
+	cursor: pointer;
+}
+
+#plot {
+	padding: 1vh 1vw;
 }

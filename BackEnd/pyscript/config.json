@@ -1,18 +1,24 @@
 {
-	"packages": ["matplotlib", "numpy"],
+	"packages": ["numpy", "pandas"],
 	"files": {
-		"{FROM-GEN}": "../Data/Generated/simulation_results_rs1",
-		"{FROM-SIM}": "../Data/Simulation/results_rs1",
-		"{FROM-GEN}/school_info.npy": "./gen/school_info.npy",
-		"{FROM-GEN}/school_rankings.npy": "./gen/school_rankings.npy",
-		"{FROM-GEN}/student_info.npy": "./gen/student_info.npy",
-		"{FROM-GEN}/student_rankings.npy": "./gen/student_rankings.npy",
-		"{FROM-SIM}/bins.npy": "./sim/bins.npy",
-		"{FROM-SIM}/matches.npy": "./sim/matches.npy",
-		"../gale_shapley.py": ""
+		"{FROM-GEN-1}": "../Data/Generated/simulation_results_rs1",
+		"{FROM-SIM-1}": "../Data/Simulation/results_rs1",
+		"{TO-GEN-1}": "./gen_1",
+		"{TO-SIM-1}": "./sim_1",
+		"{FROM-GEN-1}/school_info.npy": "{TO-GEN-1}/school_info.npy",
+		"{FROM-GEN-1}/school_rankings.npy": "{TO-GEN-1}/school_rankings.npy",
+		"{FROM-GEN-1}/student_info.npy": "{TO-GEN-1}/student_info.npy",
+		"{FROM-GEN-1}/student_rankings.npy": "{TO-GEN-1}/student_rankings.npy",
+		"{FROM-SIM-1}/bins.npy": "{TO-SIM-1}/bins.npy",
+		"{FROM-SIM-1}/matches.npy": "{TO-SIM-1}/matches.npy",
+		"{FROM-SIM-1}/seats.npy": "{TO-SIM-1}/seats.npy",
+		"../Data/schools_info.npy": "",
+		"../gale_shapley.py": "",
+		"../oneshot.py": ""
 	},
 	"js_modules": {
 		"main": {
+			"https://cdn.jsdelivr.net/npm/d3@7/+esm": "d3",
 			"../../FrontEnd/script.js": "script",
 			"../../FrontEnd/style.css": "script"
 		}
