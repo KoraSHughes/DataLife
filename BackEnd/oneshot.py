@@ -46,7 +46,7 @@ class Student:
         else:
             self.lottery = uuid.UUID(int=random.getrandbits(128), version=4).hex  # note: can do duplicate check if necessary
 
-            seed_nums = random.sample(range(1, 3), 2)  # necessary to get 2 independent numbers
+            seed_nums = random.choices([0,1], k=2)  # necessary to get 2 independent numbers
             # integer representation of how likely a student is to select a given school
             self.selection_policy = seed_nums[0]
             # integer representation of how highly a student is to rank a school, given they've already selected it
@@ -222,7 +222,7 @@ def generate_schools(seed, size=437):
     assert LARGE_NUM > size, f"{LARGE_NUM=} must be > {size=} for simulation to run properly"
     return [School("School #"+str(i)) for i in random.sample(range(LARGE_NUM), size)]
 
-def generate_nyc_schools(seed, school_info_dir="schools_info.npy"):
+def generate_nyc_schools(seed, school_info_dir="Data/schools_info.npy"):
     """ generate schools based on nyc school applicant data """
     school_info = np.load(school_info_dir, allow_pickle=True).item()
     # {name: (dbn, capacity, true applicants, total applicants)}
