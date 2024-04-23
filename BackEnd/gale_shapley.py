@@ -215,6 +215,10 @@ class Matching:
 		}
 
 	def run(self):
+		"""
+		Runs the Gale-Shapley matching algorithm between the provided students and schools.
+		"""
+
 		students_to_match = list(self.students.copy().items())
 
 		while students_to_match:
@@ -235,6 +239,10 @@ class Matching:
 					students_to_match.append((unmatched_id, unmatched_student))
 
 	def check_stability(self):
+		"""
+		Checks the stability of the outcome of the matching algorithm.
+		"""
+
 		print()
 		print('*** Stability check ***')
 
@@ -261,6 +269,24 @@ class Matching:
 		print(f'The outcome is {"stable" if num_unstable == 0 else "unstable"} ({num_unstable} unstable pairs).')
 
 	def get_results(self, rs=None, save_to_disk=True) -> tuple[dict, dict, dict]:
+		"""
+		Returns the outcome of the matching algorithm, saving it to disk if requested.
+
+		Parameters:
+		- rs: the random state used to generate the input (only used to save the outcome to disk).
+		- save_to_disk: if `True`, the outcome will be saved to disk.
+
+		Returns:
+		- bins: list of lists comprising the lottery numbers of all the applicants, grouped by the position in the preference
+		list of the school they were matched to.
+		- matches: dictionary whose keys are the identifiers of each applicant and whose values are dictionaries including
+		the DBN of the school the applicant was matched to (at index `dbn`) and the school's position in their preference
+		list (at index `rank`).
+		- seats: dictionary whose keys are the DBNs of each school and whose values are dictionaries including the number of
+		students matched with the school (at index `matched_students`), the school's total capacity (at index `total_seats`)
+		and the number of true applicants to the school (at index `true_applicants`).
+		"""
+
 		bins = {i: [] for i in range(13)}
 		matches = {}
 		seats = {}
@@ -268,8 +294,6 @@ class Matching:
 		for id, student in self.students.items():
 			school, rank = student.get_result()
 			matches[id] = {
-				'lottery': student.lottery_number,
-				'preferences': len(student.ranking),
 				'dbn': school,
 				'rank': rank+1 if rank is not None else None
 			}
@@ -282,7 +306,7 @@ class Matching:
 			# format: number of accepted students, number of seats, number of true applicants
 			pl, npl, ps, nps, apps = school.get_result()
 			seats[dbn] = {
-				'accepted_students': pl + npl,
+				'matched_students': pl + npl,
 				'total_seats': ps + nps,
 				'true_applicants': apps
 			}
@@ -297,27 +321,36 @@ class Matching:
 		return bins, matches, seats
 
 def run_matching(students, student_info, schools, school_info):
+	"""
+	Instantiates the students and schools based on the provided information, then runs the matching algorithm and returns
+	the outcome.
+
+	Parameters:
+	- students: dictionary indexed by the students' identifiers reporting each student's preference profile.
+	- student_info: dictionary indexed by the students' identifiers reporting each student's representation in list form.
+	- schools: dictionary indexed by the schools' DBNs reporting each schools's ranking of the applicants.
+	- school_info: dictionary indexed by the schools' DBNs reporting each school's representation in list form.
+	"""
+
 	match = Matching(students, student_info, schools, school_info)
 	match.run()
 	return match.get_results(save_to_disk=False)
 
 def run_matching_offline(random_state):
+	"""
+	Instantiates the students and schools based on the provided random state, then runs the matching algorithm and returns
+	the outcome.
+	"""
+
 	path = f'BackEnd/Data/Generated/simulation_results_rs{random_state}/'
 
-	start = time.time()
 	students = np.load(path + 'student_rankings.npy', allow_pickle=True).item()
 	student_info = np.load(path + 'student_info.npy', allow_pickle=True).item()
 	schools = np.load(path + 'school_rankings.npy', allow_pickle=True).item()
 	school_info = np.load(path + 'school_info.npy', allow_pickle=True).item()
 
 	match = Matching(students, student_info, schools, school_info)
-	load_time = time.time() - start
-	print(f'Loading done in {load_time:.2f} seconds.')
-
-	start = time.time()
 	match.run()
-	match_time = time.time() - start
-	print(f'Matching done in {match_time:.2f} seconds.')
 
 	match.get_results(random_state, save_to_disk=True)
 
