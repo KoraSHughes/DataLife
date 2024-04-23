@@ -14,17 +14,16 @@ n = the number of unique simulations states you want to run, s = the max number 
 n for LARGE_NUM=10^8th with nyc data is approximately 140, aka 140 totally unique simulations & nCr(s,140*s) permutations
 """
 
-# stats on nyc schools
+# stats on nyc schools (used for random student/school population generation)
 mean_school_cap = 145  # capacity
 std_school_cap = 128.5
 mean_ens = 2.453505  # ens = expected number of students applied per seat
 std_ens = 4.072874
-
 # stats on students
 mean_stud_score = 68  # gpa on 100% scale
 std_stud_score = 8.89
 
-# distributions according to: https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school
+# grade cutoffs according to: https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school
 screen_dist = [94, 89.66, 82.75, 76.33]  # https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school/screened-admissions
 edopt_dist = [88.25, 77.5]  #https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school/educational-option-ed-opt-admissions-method
 
@@ -78,7 +77,8 @@ class Student:
         return num
 
     def update_choice(self, schools):
-        """ used to update a student object with custom school information """
+        """ used to update a student object with custom school information 
+        (not really in use in current implementaiton) """
         self.schools = schools
         self.num_schools = len(schools)
 
@@ -110,11 +110,11 @@ class School:
         self.dbn = seed  # ID
         random.seed(seed) # set the seed
 
-        self.policy = random.randint(1,3)
+        self.policy = random.randint(1,3)  # determines how schools select students (aka open/edopt/screen)
         self.capacity = self.get_rand_cap(seed) if cap<0 else cap
 
-        # NOTE: popularity is how likely a school is to be on a student's list
-        if pop == -1:  # weighted by mean & std of popularity / mean capacity
+        # popularity is how likely a school is to be on a student's list
+        if pop == -1:  # if no input generated based on real-life distribution * capacity
             np.random.seed(seed_stoi(seed))
             new_pop = np.random.normal(mean_ens, std_ens, 1)[0]
             if new_pop < 0:
@@ -122,7 +122,7 @@ class School:
             self.popularity = round(self.capacity * new_pop, 2)
         else:
             self.popularity = pop
-        # NOTE: likeability is how high on a students list a given school should appear
+        # likeability is how high on a students list a given school should appear
         self.likeability = random.randint(1,MAX_NUM_SCHOOLS) if like == -1 else like
 
         # extra info
@@ -160,7 +160,7 @@ class School:
 
 stoi_limit = 2**32 - 1
 def seed_stoi(s):
-    """ somewhat janky conversion of string to int for numpy random states
+    """ somewhat janky conversion of string-to-int() for numpy random states
     (since np.random.seed() cant take a string) """
     res = 1
     for c in s:
@@ -171,14 +171,14 @@ def seed_stoi(s):
 
 
 def match_schools(all_schools, lst):
-    """ matches schools based on edit distance """
+    """ matches strings to schools based on edit distance """
     result = []
     for name in lst:
         dists = [(str(schol), SequenceMatcher(None, name, schol.name).ratio()) for schol in all_schools.values()]
         result.append(max(dists, key=lambda x: x[1])[0])  # add the school with the min edit distance
     return result
 
-
+# functions used for previous data
 def add_fake_gpa(students):
     """ adds a gpa attribute based on the students ELA and Math scores """
     students["fake_gpa"] = students["Math_score"] + students["ELA_score"]
@@ -196,6 +196,8 @@ def get_distributions():
     screen_dist = [student_df["fake_gpa"].quantile(i/5) for i in range(4, 0, -1)]
     return edopt_dist, screen_dist
 # edopt_dist, screen_dist = get_distributions()
+
+
 def set_place(x, dist):
     """ returns a number representing which placement of a number x based on a distribution dist """
     for i, num in enumerate(dist):
@@ -203,7 +205,7 @@ def set_place(x, dist):
             return i+1
     return len(dist)+1
 
-# USED FOR SEAT/SCREEN CALCULATIONS
+# *USED FOR SEAT/SCREEN CALCULATIONS
 seated = lambda x: set_place(x, edopt_dist)
 screened = lambda x: set_place(x, screen_dist)
 
@@ -237,10 +239,9 @@ def generate_nyc_schools(seed, school_info_dir="schools_info.npy"):
 
 # SIMULATIONS
 def simulate_student_choices(students, schools):
-    """ takes in a dict of students and schools and generates choices based on student.selection_policy
-     ordered by student.ranking_policy
-     Note: also outputs a school_to_student helper dict such that {school.dbn: set(school_id)}
-     """
+    """ takes in a dict of students and schools and generates choices based on student.selection_policy, ordered by student.ranking_policy
+        Note: also outputs a school_to_student helper dict for school ranking such that {school.dbn: set(school_id)}
+    """
     choices = dict([[str(stud), []] for stud in students])
 
     # generate lists of schools for each strategy & shuffle
@@ -257,9 +258,10 @@ def simulate_student_choices(students, schools):
         else:  # popularity weighted randomized
             ranks = random.choices(population=full_random, weights=popularity_weights, k=stud.num_schools)
 
-        # order based on student policy
+        # randomize list based on student's seed
         random.seed(str(stud))
-        random.shuffle(ranks)  # randomize list based on student's seed
+        random.shuffle(ranks)  
+        # order based on student policy
         if stud.ranking_policy != 1:  # rank by likeability
             ranks.sort(key=lambda schol: schools[schol].likeability, reverse=True)
             # NOTE: ties are handled by how the list was previously sorted which is depended on the seed
