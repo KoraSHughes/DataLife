@@ -99,11 +99,11 @@ class School:
 		worst_match_rank = self.non_priority_list[0][0]
 		return rank < -worst_match_rank
 
-	def get_result(self) -> tuple[list, list, int, int, int]:
+	def get_result(self) -> tuple[int, int, int, int, int]:
 		"""
-		Returns the identifiers of the students matched with the school, along with the number of available spots.
+		Returns the number of students matched with the school, the number of available spots, and the number of applicants.
 		"""
-		return [], self.non_priority_list, 0, self.total_seats, self.applications_received
+		return 0, len(self.non_priority_list), 0, self.total_seats, self.applications_received
 
 class PrioritySchool(School):
 	def __init__(self, dbn, ranking, priority_students, priority_seats, total_seats):
@@ -197,15 +197,15 @@ class PrioritySchool(School):
 
 	def get_result(self) -> tuple[list, list, int, int, int]:
 		"""
-		Returns the identifiers of the students matched with the school, along with the number of available spots, divided
-		into priority and non-priority.
+		Returns the number of students matched with the school, the number of available spots, and the number of applicants.
+		The numbers of matches and available spots are divided into priority and non-priority.
 		"""
-		return self.priority_list, self.non_priority_list, self.priority_seats, self.total_seats, self.applications_received
+		return len(self.priority_list), len(self.non_priority_list), self.priority_seats, self.total_seats, self.applications_received
 
 class Matching:
 	def __init__(self, students, student_info, schools, school_info):
 		lottery_idx = 1  # In student_info, the lottery number is found at index 1 of the attribute array
-		capacity_idx = 1  # In school_info, the capacity is found at index XYZ of the attribute array
+		capacity_idx = 1  # In school_info, the capacity is found at index 1 of the attribute array
 
 		self.students = { student_id:
 			Student(student_id, ranking, student_info[student_id][lottery_idx]) for student_id, ranking in students.items()
@@ -260,36 +260,50 @@ class Matching:
 		print()
 		print(f'The outcome is {"stable" if num_unstable == 0 else "unstable"} ({num_unstable} unstable pairs).')
 
-	def get_results(self, rs, save_to_disk=True):
+	def get_results(self, rs=None, save_to_disk=True) -> tuple[dict, dict, dict]:
 		bins = {i: [] for i in range(13)}
 		matches = {}
+		seats = {}
 
 		for id, student in self.students.items():
 			school, rank = student.get_result()
-			matches[id] = (school, rank+1 if rank is not None else None)
+			matches[id] = {
+				'lottery': student.lottery_number,
+				'preferences': len(student.ranking),
+				'dbn': school,
+				'rank': rank+1 if rank is not None else None
+			}
 			if rank is None:
 				bins[12].append(student.lottery_number)
 			else:
 				bins[rank].append(student.lottery_number)
+
+		for dbn, school in self.schools.items():
+			# format: number of accepted students, number of seats, number of true applicants
+			pl, npl, ps, nps, apps = school.get_result()
+			seats[dbn] = {
+				'accepted_students': pl + npl,
+				'total_seats': ps + nps,
+				'true_applicants': apps
+			}
 
 		if save_to_disk:
 			path = f'BackEnd/Data/Simulation/results_rs{rs}/'
 			Path(path).mkdir(parents=True, exist_ok=True)
 			np.save(path + 'bins.npy', bins, allow_pickle=True)
 			np.save(path + 'matches.npy', matches, allow_pickle=True)
+			np.save(path + 'seats.npy', seats, allow_pickle=True)
 
-		return bins
+		return bins, matches, seats
 
-def run_simulation(students, lottery, schools, capacities, stage):
-	match = Matching(students, lottery, schools, capacities)
+def run_matching(students, student_info, schools, school_info):
+	match = Matching(students, student_info, schools, school_info)
 	match.run()
-	return match.get_results(stage, save_to_disk=False)
+	return match.get_results(save_to_disk=False)
 
-if __name__ == '__main__':
-	# stage = 1
-	random_state = 1
-
+def run_matching_offline(random_state):
 	path = f'BackEnd/Data/Generated/simulation_results_rs{random_state}/'
+
 	start = time.time()
 	students = np.load(path + 'student_rankings.npy', allow_pickle=True).item()
 	student_info = np.load(path + 'student_info.npy', allow_pickle=True).item()
@@ -305,4 +319,8 @@ if __name__ == '__main__':
 	match_time = time.time() - start
 	print(f'Matching done in {match_time:.2f} seconds.')
 
-	match.get_results(random_state)
+	match.get_results(random_state, save_to_disk=True)
+
+if __name__ == '__main__':
+	random_state = 1
+	run_matching_offline(random_state)
