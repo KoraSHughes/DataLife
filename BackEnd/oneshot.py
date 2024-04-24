@@ -76,12 +76,6 @@ class Student:
             num = 100
         return num
 
-    def update_choice(self, schools):
-        """ used to update a student object with custom school information 
-        (not really in use in current implementaiton) """
-        self.schools = schools
-        self.num_schools = len(schools)
-
     def info(self, simple=False):
         """ shows basic information generated from seed/id """
         basics = "ID: " + self.id + "\nLottery: " + self.lottery
