@@ -1,9 +1,9 @@
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
 
-const STUDENT_ID = 'current_user';
-const SEL = { 0: 'random', 1: 'popularity-based' };
-const RNK = { 0: 'random', 1: 'likeability-based' };
-const ADM = { 1: 'open', 2: 'EdOpt', 3: 'screen' };
+const STUDENT_ID = 'current_user';  // Used to retrieve the custom data provided in input, when applicable
+const removeIcon = 'cancel';
+const pyDoneEvent = new Event('py-backend-done');
+let userData = null;
 
 const lotteryNumbers = [
 	'3a4bdc7f-8e91-0c2a-6f5d-1b9e6a38d047',
@@ -16,11 +16,13 @@ const lotteryNumbers = [
 	'4f6bd3ef-2929-d7c0-8215-c4065d0109b4'
 ];
 
-const removeIcon = 'cancel';
+function displayAlert(s) {
+	alert(s);
+}
 
-const pyDoneEvent = new Event('py-backend-done');
-let userData = null;
-
+/**
+ * Returns the ordinal string for a given integer.
+ */
 function getOrdinal(num) {
 	if (num % 10 == 0 || num % 10 > 3 || [11, 12, 13].includes(num))
 		return num + 'th';
@@ -32,15 +34,25 @@ function getOrdinal(num) {
 		return num + 'rd';
 }
 
-function getHex(string) {
+/**
+ * Returns the numerical value of the first 8 digits of a hexadecimal string.
+ */
+function getHexValue(string) {
 	return Number('0x' + string.replaceAll('-', '').substring(0, 8));
 }
 
-function getDecimal(num, firstDigits = 1) {
+/**
+ * Returns the first `numDigits` digits of the hexadecimal representation of the given number, padded to reach 8 digits if needed.
+ */
+function getHexDigits(num, numDigits = 1) {
 	num = Math.floor(num);
-	return num.toString(16).padStart(8, '0').substring(0, firstDigits).toUpperCase();
+	return num.toString(16).padStart(8, '0').substring(0, numDigits).toUpperCase();
 }
 
+/**
+ * This class animates the lottery number examples element in the website. The `iterate` function updates the lottery
+ * number shown in the page every 3 seconds.
+ */
 class LotteryNumberExamples {
 	constructor() {
 		this.el = document.getElementById('lottery-example');
@@ -61,6 +73,9 @@ class LotteryNumberExamples {
 	}
 }
 
+/**
+ * This class handles the expandable explainers for the lottery numbers.
+ */
 class LotteryExplainers {
 	constructor() {
 		this.expand1 = document.getElementById('expand-1');
@@ -107,6 +122,9 @@ class LotteryExplainers {
 	}
 }
 
+/**
+ * This class is used to instantiate items of the school choice list.
+ */
 class SchoolChoice {
 	constructor(num) {
 		this.num = num;
@@ -140,6 +158,10 @@ class SchoolChoice {
 	}
 }
 
+/**
+ * This class regulates the behavior of the school choice list, handling the listeners regarding the "Add choice" button
+ * and enabling drag-and-drop between list items.
+ */
 class SchoolList {
 	constructor() {
 		this.el = document.getElementById('choices').children[0];
@@ -231,6 +253,10 @@ class SchoolList {
 		}
 	}
 
+	/**
+	 * Returns an array containing the DBNs of the chosen schools, in the order specified by the user, or `null` if the
+	 * list is empty.
+	 */
 	getValues() {
 		let res = [];
 
@@ -250,21 +276,28 @@ class SchoolList {
 	}
 }
 
+/**
+ * This class handles all of the user-provided data to be passed to the backend for running the matching simulation.
+ */
 class UserData {
 	constructor(schoolList) {
+		// This datalist includes all the NYC high schools that took part in the matching process in 2023
 		this.datalist = document.getElementById('school-list');
+
 		this.addDataBtn = document.getElementById('btn-add-data');
 		this.removeDataBtn = document.getElementById('btn-remove-data');
 
+		// Shuffle controls whether the random state for the simulation is updated at each execution (shuffle on) or kept stable (shuffle off)
 		this.shuffleOff = document.getElementById('shuffle-off');
 		this.shuffleOn = document.getElementById('shuffle-on');
-		this.randomState = 1 + Date.now() % 50;
+		this.randomState = null;  // Default: shuffle on, random state set to null, dynamically assigned when needed
 
 		this.customData = document.getElementById('custom-data');
 		this.lotteryInput = document.getElementById('custom-lottery-input');
 		this.gpaInput = document.getElementById('custom-gpa-input');
 		this.choicesList = new SchoolList();
 
+		// This property keeps track of whether the user is providing any custom data to add to the simulation
 		this.hasCustomData = false;
 
 		this.addDataBtn.addEventListener('click', () => {
@@ -296,6 +329,10 @@ class UserData {
 		this.initializeDatalist(schoolList);
 	}
 
+	/**
+	 * This function initializes the options for the datalist containing NYC high schools that took part in the matching
+	 * in 2023. The options are parsed from a JSON file and passed as a parameter.
+	 */
 	initializeDatalist(schoolList) {
 		schoolList.forEach(opt => {
 			let option = document.createElement('option');
@@ -304,6 +341,10 @@ class UserData {
 		});
 	}
 
+	/**
+	 * This function returns an object containing the custom data passed by the user (lottery number, preference profile,
+	 * GPA) along with a security check, whose value is `False` only if no data has been provided, and the random state.
+	 */
 	getValues(updateRandomState = false) {
 		let rs = this.randomState;
 		// As getValue is also called after the simulation, updateRandomState is only true when a new simulation has been launched
@@ -330,6 +371,10 @@ class UserData {
 	}
 }
 
+/**
+ * This class handles all of the data visualization to be performed after a simulation is executed. It manages both the
+ * nutritional label and the focus sections shown below it.
+ */
 class DataVisualizer {
 	constructor(students, schools, bins, matches, schoolOutcome) {
 		// { student_id: { lottery: ..., selection: ..., ranking: ..., list_length: ..., gpa: ... } }
@@ -345,11 +390,11 @@ class DataVisualizer {
 
 		this.el = document.getElementById('simulation-results');
 
-		// Outcome from custom data (only if input is provided)
+		// Nutritional label: outcome from custom data (only if input is provided)
 		this.customOutcomeSection = document.getElementById('custom-outcome');
 		this.pCustomOutcome = document.getElementById('school-match').childNodes[0];
 
-		// Input data
+		// Nutritional label: input data
 		this.pTotalStudents = document.getElementById('total-applicants').childNodes[0];
 		this.pTotalSchools = document.getElementById('total-schools').childNodes[0];
 		this.pTotalCapacity = document.getElementById('total-capacity').childNodes[0];
@@ -357,12 +402,12 @@ class DataVisualizer {
 		this.pListLength = document.getElementById('average-list-length').childNodes[0];
 		this.pAdmissionPolicy = document.getElementById('admission-policies').childNodes[0];
 
-		// Student outcome
+		// Nutritional label: student outcome
 		this.pStudentsTop = document.getElementById('students-top').childNodes[0];
 		this.pStudentsFive = document.getElementById('students-top-5').childNodes[0];
 		this.pStudentsUnmatched = document.getElementById('students-unmatched').childNodes[0];
 
-		// School outcome
+		// Nutritional label: school outcome
 		this.pSchoolsUnfilled = document.getElementById('schools-unfilled').childNodes[0];
 		this.pSeatsUnfilled = document.getElementById('seats-unfilled').childNodes[0];
 
@@ -387,6 +432,9 @@ class DataVisualizer {
 		this.attachListeners();
 	}
 
+	/**
+	 * Compute aggregate statistics that will be used to compile the nutritional label.
+	 */
 	computeAggregateStats() {
 		this.counts = this.bins.map(bin => bin.length);
 		this.totalStudents = this.counts.reduce((a, b) => a + b, 0);
@@ -398,18 +446,18 @@ class DataVisualizer {
 		let policyMatrix = [[0, 0], [0, 0]];
 		let sel, rnk;
 		for (let val of this.studentInfo.values()) {
-			sumListLength += val.get('list_length');
+			sumListLength += val.get('list_length');  // Add the list length (used to compute average)
 			sel = val.get('selection');
 			rnk = val.get('ranking');
 			if (sel >= 0 && rnk >= 0)
-				policyMatrix[sel][rnk] += 1;
+				policyMatrix[sel][rnk] += 1;  // Update student policy matrix
 		}
 		this.avgListLength = sumListLength / this.matches.size;
 		this.studentPolicyMatrix = policyMatrix;
 
 		let admissions = [0, 0, 0];
 		for (let val of this.schoolInfo.values())
-			admissions[val.get('policy')-1] += 1;
+			admissions[val.get('policy')-1] += 1;  // Update school admission policy counts
 
 		this.admissionPolicies = admissions;
 
@@ -429,6 +477,7 @@ class DataVisualizer {
 		this.schoolsUnfilled = schoolsUnfilled;
 		this.numSchoolsUnfilled = schoolsUnfilled.length;
 
+		// Compute cumulative statistics for students matched with any of their top 5 choices
 		this.ratioFive = [0, 1, 2, 3, 4].map(idx => this.ratios[idx]).reduce((a, b) => a + b, 0);
 		this.countFive = [0, 1, 2, 3, 4].map(idx => this.counts[idx]).reduce((a, b) => a + b, 0);
 	}
@@ -456,10 +505,10 @@ class DataVisualizer {
 		const outcomeRank = this.matches.get(STUDENT_ID).get('rank');
 		const schools = userData.getValues().preferences;  // User's preference list
 		const userLottery = this.studentInfo.get(STUDENT_ID).get('lottery').replaceAll('-', '');
-		const userLotteryHex = getHex(userLottery);
+		const userLotteryHex = getHexValue(userLottery);
 		const userGrade = this.studentInfo.get(STUDENT_ID).get('gpa');
 
-		// Info about the admission policy of the schools selected by the user
+		// Info about the admission policy of the schools selected by the user (always applicable)
 		const policies = [0, 0, 0];
 		schools.map(dbn => this.schoolInfo.get(dbn))  // Retrieve the schoolInfo object for each school
 			.forEach(s => {	policies[s.get('policy') - 1] += 1 });
@@ -473,7 +522,7 @@ class DataVisualizer {
 		if (outcomeRank != undefined) {
 			const outcomeDBN = schools[outcomeRank - 1];
 			const studentsOther = this.schoolOutcome.get(outcomeDBN).get('matches');
-			const lotteriesOther = studentsOther.map(s => this.studentInfo.get(s).get('lottery')).map(getHex);
+			const lotteriesOther = studentsOther.map(s => this.studentInfo.get(s).get('lottery')).map(getHexValue);
 			const gradesOther = studentsOther.map(s => this.studentInfo.get(s).get('gpa'));
 
 			// Evaluate lottery number and GPA w.r.t. quartiles among the students matched to this school
@@ -529,6 +578,7 @@ class DataVisualizer {
 			par1 = 'Among those who matched ahead of you with a worse lottery number, '
 				+ (100 * numGrade / (numAhead - numLottery)).toFixed(1) + '% had a higher GPA than you.';
 		} else {
+			// In case the student was matched to their top choice
 			heading = 'Congrats, you were matched with your top choice!'
 		}
 
@@ -538,6 +588,7 @@ class DataVisualizer {
 	computeStudentOutcome(variant) {
 		let number, subtitle, par1, par2, par3, plot, index;
 
+		// Compute stats about students matched with their top choice and display the choice counts on a histogram
 		if (variant === 'top') {
 			const medianTop = this.bins[0][Math.floor(this.bins[0].length / 2)];
 
@@ -557,6 +608,7 @@ class DataVisualizer {
 			plot = 'counts';
 			index = 1;
 
+		// Compute cumulative stats about students matched within their top 5 choices and display the tree map
 		} else if (variant === 'top-5') {
 
 			const combinedBins = [0, 1, 2, 3, 4].map(idx => this.bins[idx]).reduce((x, y) => x.concat(y), []).sort();
@@ -576,6 +628,7 @@ class DataVisualizer {
 				+ ' and their average GPA is ' + avgGPA.toFixed(1) + '.';
 			plot = 'counts-cumulative';
 
+		// Compute stats about unmatched students and display the choice counts on a histogram
 		} else if (variant === 'unmatched') {
 
 			const medianUnmatched = this.bins[12][Math.floor(this.bins[12].length / 2)];
@@ -600,6 +653,9 @@ class DataVisualizer {
 		return { number, subtitle, par1, par2, par3, plot, index };
 	}
 
+	/**
+	 * This function displays the focus section with data relative to the nutritional label field expanded by the user.
+	 */
 	showFocus(target, variant) {
 		let heading, number, subtitle, par1, par2, par3, plot, index;
 
@@ -664,20 +720,16 @@ class DataVisualizer {
 		this.el.scrollIntoView(true);
 	}
 
-	hide() {
-		this.el.classList.add('hide');
-	}
-
+	/**
+	 * Plot the range of lottery numbers for students matched with their `index`-th choice (or unmatched, if `index` is 13).
+	 * Displays a summary of the 90% range, inter-quartile range, and median.
+	 */
 	plotLotteryRange(index) {
 		// Clear any existing plots
 		this.plotSecondary.innerHTML = '';
 
-		const margin = { top: 25, right: 25, bottom: 25, left: 25 };
-		// const width = 100;
-		// const height = 400;
-
 		const hexDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f'];
-		const bin = this.bins[index - 1].map(getHex);
+		const bin = this.bins[index - 1].map(getHexValue);
 		const data = {
 			index: index,
 			min: d3.quantile(bin, .05),
@@ -687,75 +739,16 @@ class DataVisualizer {
 			med: d3.quantile(bin, .5)
 		};
 
-		// // Define the Y axis scale
-		// let y = d3.scaleLinear()
-		// 	.domain([0, getHex('ffffffff')])
-		// 	.range([height - margin.bottom, margin.top]);
-
-		// const boxCenter = 60;
-		// const boxWidth = 30;
-
-		// // Append the SVG container
-		// const svg = d3.select('#plot-secondary')
-		// 	.append('svg')
-		// 	.attr('width', width)
-		// 	.attr('height', height)
-		// 	.attr('viewBox', [0, 0, width, height]);
-
-		// // Add the Y axis
-		// svg.append('g')
-		// 	.attr('transform', 'translate(' + margin.left + ',0)')
-		// 	.call(d3.axisLeft(y)
-		// 		.tickValues(hexDigits.map(n => getHex(n + '0000000')))
-		// 		.tickSizeOuter(0)
-		// 		.tickFormat(y => getDecimal(y)))
-		// 	.attr('font-size', '14px')
-		// 	.call(g => g.append('text')
-		// 		.attr('x', -margin.left)
-		// 		.attr('y', 15)
-		// 		.attr('fill', '#000000')
-		// 		.attr('text-anchor', 'start')
-		// 		.attr('font-size', '14px')
-		// 		.text('First digit'));
-
-		// // Append the min-max line
-		// svg.append('line')
-		// 	.attr('x1', boxCenter)
-		// 	.attr('x2', boxCenter)
-		// 	.attr('y1', y(data.min))
-		// 	.attr('y2', y(data.max))
-		// 	.attr('stroke', 'black');
-
-		// // Append the box
-		// svg.append('rect')
-		// 	.attr('fill', '#4036ed')
-		// 	.attr('x', boxCenter - boxWidth / 2)
-		// 	.attr('y', y(data.q3))
-		// 	.attr('width', boxWidth)
-		// 	.attr('height', y(data.q1) - y(data.q3));
-
-		// // Append the horizontal lines
-		// svg.selectAll('toto')
-		// 	.data([data.med])
-		// 	.enter()
-		// 	.append('line')
-		// 	.attr('x1', boxCenter - boxWidth / 2)
-		// 	.attr('x2', boxCenter + boxWidth / 2)
-		// 	.attr('y1', d => y(d))
-		// 	.attr('y2', d => y(d))
-		// 	.attr('stroke', 'orange')
-		// 	.attr('stroke-width', '2px');
-
+		const margin = { top: 25, right: 25, bottom: 25, left: 25 };
 		const width = 400;
 		const height = 100;
+		const boxCenter = 50;
+		const boxWidth = 30;
 
 		// Define the X axis scale
 		let x = d3.scaleLinear()
-			.domain([0, getHex('ffffffff')])
+			.domain([0, getHexValue('ffffffff')])
 			.range([margin.left, width - margin.right]);
-
-		const boxCenter = 60;
-		const boxWidth = 30;
 
 		// Append the SVG container
 		const svg = d3.select('#plot-secondary')
@@ -766,15 +759,15 @@ class DataVisualizer {
 
 		// Add the X axis
 		svg.append('g')
-			.attr('transform', 'translate(' + margin.left + ',0)')
+			.attr('transform', 'translate(0,' + (height - margin.bottom) + ')')
 			.call(d3.axisBottom(x)
-				.tickValues(hexDigits.map(n => getHex(n + '0000000')))
+				.tickValues(hexDigits.map(n => getHexValue(n + '0000000')))
 				.tickSizeOuter(0)
-				.tickFormat(x => getDecimal(x)))
+				.tickFormat(x => getHexDigits(x)))
 			.attr('font-size', '14px')
 			.call(g => g.append('text')
-				.attr('x', 0)
-				.attr('y', 0)
+				.attr('x', margin.left)
+				.attr('y', -50)
 				.attr('fill', '#000000')
 				.attr('text-anchor', 'start')
 				.attr('font-size', '14px')
@@ -817,7 +810,7 @@ class DataVisualizer {
 					prefix = 'Most of the unmatched applicants\n';
 
 				return prefix + 'have a lottery number\nstarting with a digit between '
-					+ getDecimal(data.min) + ' and ' + getDecimal(data.max) + '.';
+					+ getHexDigits(data.min) + ' and ' + getHexDigits(data.max) + '.';
 			});
 
 		let studentPrefix = (index == 13) ? 'unmatched applicants' : 'applicants matched with their ' + getOrdinal(index) + ' choice';
@@ -826,14 +819,19 @@ class DataVisualizer {
 
 		this.spotlightHeading.innerText = 'Lottery numbers of ' + studentPrefix;
 		this.spotlightPar1.innerText = 'Most of the ' + studentPrefix + ' have a lottery number starting with a digit between '
-			+ getDecimal(data.min) + ' and ' + getDecimal(data.max) + '. Specifically, for half of them the first digit is between '
-			+ getDecimal(data.q1) + ' and ' + getDecimal(data.q3) + '.';
+			+ getHexDigits(data.min) + ' and ' + getHexDigits(data.max) + '. Specifically, for half of them the first digit is between '
+			+ getHexDigits(data.q1) + ' and ' + getHexDigits(data.q3) + '.';
 		this.spotlightPar2.innerText = 'The median lottery number for ' + studentPrefix + ' starts with the digits '
 			+ medianAtIndex.replaceAll('-', '').substring(0, 4).toUpperCase() + '.';
 
 		this.spotlightSection.classList.remove('hide');
 	}
 
+	/**
+	 * Plots a tree-map displaying the distribution of students based on the position of their matched school on the
+	 * preference profile. Students are grouped between those matched with schools ranked 1-5, those matched with schools
+	 * ranked 6-12, and those unmatched.
+	 */
 	plotTreeMap() {
 		// Clear any existing plots
 		this.plotPrimary.innerText = '';
@@ -934,6 +932,10 @@ class DataVisualizer {
 			});
 	}
 
+	/**
+	 * Plots a histogram displaying the number of students matched with each position on their preference profile,
+	 * highlighting those matched with their `indexFocused`-th choice.
+	 */
 	plotCounts(indexFocused, cumulative = false) {
 		// Clear any existing plots
 		this.plotPrimary.innerHTML = '';
@@ -1012,6 +1014,9 @@ class DataVisualizer {
 			});
 	}
 
+	/**
+	 * Updates the nutritional label with aggregate statistics computed on the outcome of the last executed simulation.
+	 */
 	refreshNutritionalLabel() {
 		this.customOutcomeSection.classList.add('hide');
 
@@ -1039,6 +1044,9 @@ class DataVisualizer {
 		this.focusSection.classList.add('hide');
 	}
 
+	/**
+	 * Updates the focus section with the provided data.
+	 */
 	refreshFocus(heading = '', number = '', subtitle = '', par1 = '', par2 = '', par3 = '', plot = '', index = -1) {
 		this.focusHeading.innerText = heading;
 		this.focusNumber.innerText = number;
@@ -1065,13 +1073,16 @@ class DataVisualizer {
 }
 
 window.addEventListener('load', () => {
+	// Load the NYC school list and use it to populate the school choice datalist
 	fetch('./resources/school_list.json')
 		.then((response) => response.json())
 		.then((json) => userData = new UserData(json));
 
+	// Instantiate and start the animation of the lottery number examples
 	const lotteryNums = new LotteryNumberExamples();
 	lotteryNums.iterate();
 
+	// Instantiate the expandable explainers
 	const lotteryExplainers = new LotteryExplainers();
 	lotteryExplainers.initializeListeners();
 
@@ -1083,10 +1094,13 @@ window.addEventListener('load', () => {
 });
 
 window.addEventListener('py:all-done', () => {
+	// The "Run simulation" button is disabled until this event is captured, meaning PyScript is loaded and ready to run.
+	// This is needed since the click event listener for the button is in PyScript and will not work until it's fully loaded.
 	document.getElementById('run-simulation').classList.remove('disabled');
 });
 
 window.addEventListener('py-backend-done', () => {
+	// After the simulation is executed, fetch the results from the global variables and initialize the visualizer.
 	const visualizer =
 		new DataVisualizer(window.py_students, window.py_schools, window.py_bins, window.py_matches, window.py_school_outcome);
 
@@ -1096,4 +1110,4 @@ window.addEventListener('py-backend-done', () => {
 	document.getElementById('simulation-loader').classList.add('hide');  // Hide loader
 })
 
-export { pyDoneEvent, userData };
+export { displayAlert, pyDoneEvent, userData };

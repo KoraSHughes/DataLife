@@ -281,10 +281,10 @@ class Matching:
 		list of the school they were matched to.
 		- matches: dictionary whose keys are the identifiers of each applicant and whose values are dictionaries including
 		the DBN of the school the applicant was matched to (at index `dbn`) and the school's position in their preference
-		list (at index `rank`).
-		- seats: dictionary whose keys are the DBNs of each school and whose values are dictionaries including the number of
-		students matched with the school (at index `matched_students`), the school's total capacity (at index `total_seats`)
-		and the number of true applicants to the school (at index `true_applicants`).
+		list (at index `rank`). Unmatched applicants have the DBN and rank set to `None`.
+		- school_outcome: dictionary whose keys are the DBNs of each school and whose values are dictionaries including the
+		list of the students matched with the school (index `matches`) and their number (index `match_count`), the school's
+		total capacity (index `total_seats`), and the number of true applicants to the school (index `true_applicants`).
 		"""
 
 		bins = {i: [] for i in range(13)}
@@ -356,7 +356,6 @@ def run_matching_offline(random_state):
 	match.get_results(random_state, save_to_disk=True)
 
 if __name__ == '__main__':
-	# random_state = 1
 	for random_state in range(1, 51):
 		run_matching_offline(random_state)
 		print(f'Random state {random_state}: done')
