@@ -1,7 +1,6 @@
 from heapq import heappop, heappush, heappushpop
 from pathlib import Path
 import numpy as np
-import time
 
 class Student:
 	def __init__(self, identifier, ranking, lottery_number):
@@ -99,11 +98,12 @@ class School:
 		worst_match_rank = self.non_priority_list[0][0]
 		return rank < -worst_match_rank
 
-	def get_result(self) -> tuple[int, int, int, int, int]:
+	def get_result(self) -> tuple[list, int, int, int]:
 		"""
-		Returns the number of students matched with the school, the number of available spots, and the number of applicants.
+		Returns the students matched with the school, their count, the number of available spots, and the number of applicants.
 		"""
-		return 0, len(self.non_priority_list), 0, self.total_seats, self.applications_received
+		res = [v[1] for v in self.non_priority_list]
+		return res, len(res), self.total_seats, self.applications_received
 
 class PrioritySchool(School):
 	def __init__(self, dbn, ranking, priority_students, priority_seats, total_seats):
@@ -195,12 +195,12 @@ class PrioritySchool(School):
 		reject = heappushpop(self.non_priority_list, item)
 		return reject[1]
 
-	def get_result(self) -> tuple[list, list, int, int, int]:
+	def get_result(self) -> tuple[list, int, int, int]:
 		"""
-		Returns the number of students matched with the school, the number of available spots, and the number of applicants.
-		The numbers of matches and available spots are divided into priority and non-priority.
+		Returns the students matched with the school, their count, the number of available spots, and the number of applicants.
 		"""
-		return len(self.priority_list), len(self.non_priority_list), self.priority_seats, self.total_seats, self.applications_received
+		res = [v[1] for v in self.priority_list + self.non_priority_list]
+		return res, len(res), self.priority_seats + self.total_seats, self.applications_received
 
 class Matching:
 	def __init__(self, students, student_info, schools, school_info):
@@ -289,7 +289,7 @@ class Matching:
 
 		bins = {i: [] for i in range(13)}
 		matches = {}
-		seats = {}
+		school_data = {}
 
 		for id, student in self.students.items():
 			school, rank = student.get_result()
@@ -304,10 +304,11 @@ class Matching:
 
 		for dbn, school in self.schools.items():
 			# format: number of accepted students, number of seats, number of true applicants
-			pl, npl, ps, nps, apps = school.get_result()
-			seats[dbn] = {
-				'matched_students': pl + npl,
-				'total_seats': ps + nps,
+			matched_students, count, seats, apps = school.get_result()
+			school_data[dbn] = {
+				'matches': matched_students,
+				'match_count': count,
+				'total_seats': seats,
 				'true_applicants': apps
 			}
 
@@ -316,9 +317,9 @@ class Matching:
 			Path(path).mkdir(parents=True, exist_ok=True)
 			np.save(path + 'bins.npy', bins, allow_pickle=True)
 			np.save(path + 'matches.npy', matches, allow_pickle=True)
-			np.save(path + 'seats.npy', seats, allow_pickle=True)
+			np.save(path + 'school_outcome.npy', school_data, allow_pickle=True)
 
-		return bins, matches, seats
+		return bins, matches, school_data
 
 def run_matching(students, student_info, schools, school_info):
 	"""
@@ -355,5 +356,7 @@ def run_matching_offline(random_state):
 	match.get_results(random_state, save_to_disk=True)
 
 if __name__ == '__main__':
-	random_state = 1
-	run_matching_offline(random_state)
+	# random_state = 1
+	for random_state in range(1, 51):
+		run_matching_offline(random_state)
+		print(f'Random state {random_state}: done')
