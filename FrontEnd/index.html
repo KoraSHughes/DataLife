@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Match Maker</title>
 	<link rel="stylesheet" href="style.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@200" />
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300" />
 	<link rel="stylesheet" href="https://pyscript.net/releases/2024.3.2/core.css" />
 	<script defer type="module" src="https://pyscript.net/releases/2024.3.2/core.js"></script>
 </head>
@@ -13,7 +13,7 @@
 <body>
 	<div id="main-content" class="flex-col">
 
-		<div id="nav-bar" class="flex-row">
+		<nav id="nav-bar" class="flex-row">
 			<div class="nav-left">
 				<a id="btn-home" class="btn-tertiary nav-margin-r" href="index.html">Home</a>
 				<a id="btn-about" class="btn-tertiary nav-margin-lr" href="about.html">About</a>
@@ -25,18 +25,18 @@
 			<div class="nav-right">
 				<a id="run-simulation-header" class="btn-secondary" href="#simulation">Run the simulation</a>
 			</div>
-		</div>
+		</nav>
 
 		<div id="landing-text" class="section card vivid">
 			<div class="flex-grow-5">
-				<p class="heading-1">
+				<h2>
 					The high-school admission process in New York City
-				</p>
-				<p class="subtitle">
+				</h2>
+				<h6>
 					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer mattis lacus eu hendrerit aliquam. Sed pulvinar
 					erat nec purus dictum, in luctus libero placerat. Quisque mattis mollis dolor. Nullam dignissim tellus non
 					lectus venenatis hendrerit.
-				</p>
+				</h6>
 			</div>
 			<div class="flex-grow-4">
 				<img src="" alt="" style="width: 100%; height: auto;">
@@ -51,7 +51,7 @@
 
 		<div id="algorithm-overview" class="section">
 			<div class="flex-grow-5 card grey">
-				<p class="heading-2">What is the matching algorithm?</p>
+				<h3>What is the matching algorithm?</h3>
 				<p class="body">
 					At the core of the admission process is the Gale-Shapley stable matching algorithm. This procedure is designed to
 					assign students to schools in a way that respects both the students' preferences and the ordering of students
@@ -79,7 +79,7 @@
 				</video>
 			</div>
 			<div class="flex-grow-5 card grey">
-				<p class="heading-3">Tentative matching</p>
+				<h4>Tentative matching</h4>
 				<p class="body">
 					The key to the process is using tentative matches. As the algorithm progresses, each school holds its seats for
 					the best-ranked students who requested to be admitted up to that point; when a student ranked higher than the
@@ -98,7 +98,7 @@
 
 		<div class="section align-top">
 			<div id="list-length" class="card grey">
-				<p class="heading-3">List length limitation</p>
+				<h4>List length limitation</h4>
 				<p class="body">
 					To carry out the matching, the algorithm described above requires students to provide a ranking of all schools
 					in NYC, and schools to provide a ranking of all applying students.
@@ -112,7 +112,7 @@
 				</p>
 			</div>
 			<div id="unmatching" class="card grey">
-				<p class="heading-3">Unmatching</p>
+				<h4>Unmatching</h4>
 				<p class="body">
 					After the matching process, the Department of Education assigns each unmatched student to a school
 					picked at random from those that still have available seats, ensuring all applying students are admitted to a
@@ -131,17 +131,17 @@
 		<div id="lottery-number" class="section card soft">
 			<div class="flex-col space-rows">
 				<div>
-					<p class="heading-2">Lottery number</p>
-					<p class="subtitle">
+					<h3>Lottery number</h3>
+					<h6>
 						One of the most confusing aspects of the admission process is the lottery number. This number is assigned
 						randomly to each student by the Department of Education and plays an important role in the outcome of the
 						matching algorithm.
-					</p>
+					</h6>
 				</div>
 				<div class="section narrow align-top">
 					<div class="flex-grow-4 card border">
 						<div class="flex-row remove-margin">
-							<p class="heading-3">What does it do?</p>
+							<h4>What does it do?</h4>
 							<a id="expand-1"><span class="material-symbols-outlined">open_in_full</span></a>
 						</div>
 						<div id="blob-1" class="hide">
@@ -155,7 +155,7 @@
 					</div>
 					<div class="flex-grow-5 card border">
 						<div class="flex-row remove-margin">
-							<p class="heading-3">Why does it matter?</p>
+							<h4>Why does it matter?</h4>
 							<a id="expand-2"><span class="material-symbols-outlined">open_in_full</span></a>
 						</div>
 						<div id="blob-2" class="hide">
@@ -171,7 +171,7 @@
 					</div>
 					<div class="flex-grow-3 card border">
 						<div class="flex-row remove-margin">
-							<p class="heading-3">What can I do?</p>
+							<h4>What can I do?</h4>
 							<a id="expand-3"><span class="material-symbols-outlined">open_in_full</span></a>
 						</div>
 						<div id="blob-3" class="hide">
@@ -185,7 +185,7 @@
 				<div class="section narrow align-top">
 					<div class="flex-grow-1 flex-col space-rows">
 						<div class="card white">
-							<p class="heading-3">What does it look like?</p>
+							<h4>What does it look like?</h4>
 							<p class="body">
 								The lottery number does not necessarily look like a number. This is because it is encoded in hexadecimal code, meaning it
 								will include the digits, 0-9, as well as the letters from A to F:
@@ -193,7 +193,7 @@
 							<p id="lottery-example" class="display text-center">3a4bdc7f-8e91-0c2a-6f5d-1b9e6a38d047</p>
 						</div>
 						<div class="card accent">
-							<p class="heading-3">In a nutshell</p>
+							<h4>In a nutshell</h4>
 							<p class="body">
 								When evaluating the lottery number, the most important digits to examine are the first six: the lower they
 								are, the better.
@@ -205,7 +205,7 @@
 						</div>
 					</div>
 					<div class="flex-grow-1 card white">
-						<p class="heading-3">How are lottery numbers compared?</p>
+						<h4>How are lottery numbers compared?</h4>
 						<p class="body">
 							Starting from the first digit to the left, lower digits will be ranked ahead of higher digits,
 							and if the specific digits being compared are the same, then the next position in the lottery numbers is
@@ -217,7 +217,7 @@
 							goes further than the 6th digit out of 32.
 						</p>
 						<div class="lottery-vis">
-							<p class="heading-4">How good is each digit?</p>
+							<h5>How good is each digit?</h5>
 							<p class="helper">Based on the digit itself</p>
 							<div class="flex-row display">
 								<span>0</span>
@@ -244,7 +244,7 @@
 							</div>
 						</div>
 						<div class="lottery-vis">
-							<p class="heading-4">How relevant is each digit?</p>
+							<h5>How relevant is each digit?</h5>
 							<p class="helper">Based on the position of the digit</p>
 							<div class="flex-row display">
 								<span>x</span>
@@ -297,7 +297,7 @@
 
 		<div id="simulation" class="section card border">
 			<div class="flex-col">
-				<p class="heading-2">The algorithm in action</p>
+				<h3>The algorithm in action</h3>
 				<div class="section nested stretch">
 					<div class="flex-grow-3">
 						<p class="body">
@@ -307,10 +307,10 @@
 							the nuances of the admission process, it will give you a rough idea of the outcome.
 						</p>
 					</div>
-					<div class="flex-grow-5 flex-col space-rows-half justify-start">
-						<div class="section narrow justify-start">
+					<div class="flex-grow-5 flex-col space-rows-less justify-start">
+						<div class="section narrow wrap justify-start">
 							<div id="run-simulation-py">
-								<a id="run-simulation" class="btn-primary disabled" href="#simulation-results">
+								<a id="run-simulation" class="btn-primary disabled">
 									Run the simulation<span class="material-symbols-outlined">south_east</span>
 								</a>
 							</div>
@@ -319,6 +319,12 @@
 							</a>
 							<a id="btn-remove-data" class="btn-secondary hide">
 								Remove data<span class="material-symbols-outlined">remove</span>
+							</a>
+							<a id="shuffle-off" class="btn-toggle">
+								Shuffle off<span class="material-symbols-outlined">shuffle</span>
+							</a>
+							<a id="shuffle-on" class="btn-toggle selected hide">
+								Shuffle on<span class="material-symbols-outlined">shuffle_on</span>
 							</a>
 						</div>
 						<div id="custom-data" class="section narrow justify-start hide">
@@ -329,7 +335,7 @@
 								</div>
 								<div id="custom-gpa" class="input">
 									<span class="material-symbols-outlined">grade</span>
-									<input id="custom-gpa-input" name="custom-gpa" placeholder="GPA" size="8"></input>
+									<input id="custom-gpa-input" name="custom-gpa" placeholder="Grade average" size="12"></input>
 								</div>
 							</div>
 							<div>
@@ -338,7 +344,7 @@
 									<ul>
 										<li id="choice-1" class="flex-row input" draggable="true">
 											<span class="material-symbols-outlined draggable">drag_indicator</span>
-											<input name="choice-1" placeholder="Select a school" size="40" list="school-list"></input>
+											<input name="choice-1" placeholder="Select a school" size="56" list="school-list"></input>
 											<span class="material-symbols-outlined clickable">cancel</span>
 										</li>
 										<li id="add-choice-li">
@@ -353,17 +359,26 @@
 			</div>
 		</div>
 
-		<div id="simulation-loader" class="hide">
-			<p>Loading...</p>
+		<div id="simulation-loader" class="text-center hide">
+			<h4>Loading results...</h4>
 		</div>
 
-		<div id="simulation-results" class="section hide">
-			<div class="flex-col space-rows-half">
-				<p class="heading-2">Simulation results</p>
+		<div id="simulation-results" class="section card soft hide">
+			<div class="flex-col space-rows-less full-width">
+				<h3>Simulation results</h3>
 				<div class="section narrow align-top">
-					<div id="nutritional-label" class="card soft flex-grow-5">
-						<div class="label-group">
-							<p class="heading-3">Input data</p>
+					<div class="card white flex-grow-1">
+						<div id="custom-outcome" class="label-group hide">
+							<h4>Your outcome</h4>
+							<div class="label-field">
+								<p class="body">Your match:</p>
+								<p id="school-match" class="body">
+									Matched to n-th choice (School for Italian Pizzaiolos)<span class="material-symbols-outlined">read_more</span>
+								</p>
+							</div>
+						</div>
+						<div id="input-data" class="label-group">
+							<h4>Input data</h4>
 							<div class="label-field">
 								<p class="body">Number of applicants:</p>
 								<p id="total-applicants" class="body">00,000</p>
@@ -379,7 +394,7 @@
 							<div class="label-field">
 								<p class="body">Student preference strategy:</p>
 								<p id="preference-strategy" class="body">
-									popularity-based selection, random ordering<span class="material-symbols-outlined">read_more</span>
+									combination<span class="material-symbols-outlined">read_more</span>
 								</p>
 							</div>
 							<div class="label-field">
@@ -391,14 +406,16 @@
 								<p id="admission-policies" class="body">combination<span class="material-symbols-outlined">read_more</span></p>
 							</div>
 						</div>
-						<div class="label-group">
-							<p class="heading-3">Student results</p>
+					</div>
+					<div class="card white flex-grow-1">
+						<div id="student-outcome" class="label-group">
+							<h4>Student-side outcome</h4>
 							<div class="label-field">
 								<p class="body">Students matched to their top choice:</p>
 								<p id="students-top" class="body">00% (00,000)<span class="material-symbols-outlined">read_more</span></p>
 							</div>
 							<div class="label-field">
-								<p class="body">Students matched to one of their top 5 choices:</p>
+								<p class="body">Students matched to a top 5 choice:</p>
 								<p id="students-top-5" class="body">00% (00,000)<span class="material-symbols-outlined">read_more</span></p>
 							</div>
 							<div class="label-field">
@@ -406,8 +423,8 @@
 								<p id="students-unmatched" class="body">0% (0,000)<span class="material-symbols-outlined">read_more</span></p>
 							</div>
 						</div>
-						<div class="label-group">
-							<p class="heading-3">School results</p>
+						<div id="school-outcome" class="label-group">
+							<h4>School-side outcome</h4>
 							<div class="label-field">
 								<p class="body">Schools not at full capacity:</p>
 								<p id="schools-unfilled" class="body">00% (00)<span class="material-symbols-outlined">read_more</span></p>
@@ -418,22 +435,31 @@
 							</div>
 						</div>
 					</div>
-					<div id="focus" class="flex-col space-rows-half flex-grow-4 hide">
-						<div class="card soft">
-							<p id="focus-number" class="huge"></p>
-							<p id="focus-subtitle" class="heading-3"></p>
-							<p id="focus-par-1" class="body"></p>
-							<p id="focus-par-2" class="body"></p>
-						</div>
-						<div id="plot-primary"></div>
-						<div id="plot-secondary"></div>
+				</div>
+				<div id="focus" class="section narrow align-top hide">
+					<div class="card white">
+						<h4 id="focus-heading"></h4>
+						<h1 id="focus-number"></h1>
+						<h4 id="focus-subtitle"></h4>
+						<p id="focus-par-1" class="body"></p>
+						<p id="focus-par-2" class="body"></p>
+						<p id="focus-par-3" class="body"></p>
+					</div>
+					<div id="plot-primary"></div>
+				</div>
+				<div id="spotlight" class="section narrow align-top hide">
+					<div id="plot-secondary"></div>
+					<div class="card white">
+						<h4 id="spotlight-heading"></h4>
+						<p id="spotlight-par-1" class="body"></p>
+						<p id="spotlight-par-2" class="body"></p>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	<div id="footer" class="flex-col footer">
+	<footer id="footer" class="flex-col footer">
 		<div id="footer-buttons" class="flex-row">
 			<div class="nav-left">
 				<a id="btn-home-footer" class="btn-tertiary nav-margin-r" href="index.html">Home</a>
@@ -443,14 +469,12 @@
 			<div class="logo">
 				<span>Match Maker</span>
 			</div>
-			<div class="nav-right">
-				<span class="btn-tertiary">Follow us on social media</span>
-			</div>
+			<div class="nav-right"></div>
 		</div>
-	</div>
+	</footer>
 
 	<script type="module" src="script.js"></script>
 	<script src="mini-coi.js"></script>
-	<script type="py" src="../BackEnd/pyscript/application_logic.py" config="../BackEnd/pyscript/config.json" worker></script>
+	<script type="py" src="./../BackEnd/pyscript/application_logic.py" config="./../BackEnd/pyscript/config.json" worker></script>
 </body>
 </html>
