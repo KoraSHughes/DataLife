@@ -618,8 +618,11 @@ h4:has(+ h1) {
 	margin-bottom: 3vh;
 }
 
-#plot-primary, #plot-secondary {
+#plot-primary {
 	padding: 1vh 1vw;
+}
+
+#plot-secondary {
 	flex-shrink: 0;
 }
 
