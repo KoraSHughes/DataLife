@@ -23,6 +23,10 @@ std_ens = 4.072874
 mean_stud_score = 68  # gpa on 100% scale
 std_stud_score = 8.89
 
+# stats on how many schools students tend to pick
+mean_stud_pick = 6.910428
+std_stud_pick = 2.187714
+
 # grade cutoffs according to: https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school
 screen_dist = [94, 89.66, 82.75, 76.33]  # https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school/screened-admissions
 edopt_dist = [88.25, 77.5]  #https://www.schools.nyc.gov/enrollment/enroll-grade-by-grade/high-school/educational-option-ed-opt-admissions-method
@@ -52,7 +56,7 @@ class Student:
             # integer representation of how highly a student is to rank a school, given they've already selected it
             self.ranking_policy = seed_nums[1]
 
-            self.num_schools = MAX_NUM_SCHOOLS
+            self.num_schools = self.get_num_pick(seed, False)
             self.schools = []  # to be updated later based on self.selection_policy
             self.name = ""
 
@@ -65,6 +69,19 @@ class Student:
         self.district = 0
         self.borough = None
         self.location = None
+
+    def get_num_pick(self, new_seed, useMax=False):
+        """ uses predefined distribution to pick how many schools each student should rank """
+        if useMax:
+            return MAX_NUM_SCHOOLS
+        random.seed(new_seed)
+        num = round(np.random.normal(mean_stud_pick, std_stud_pick, 1)[0])
+        if num <= 1:
+            return 1
+        elif num >= MAX_NUM_SCHOOLS:
+            return MAX_NUM_SCHOOLS
+        else:
+            return num
 
     def get_rand_score(self, new_seed):
         """ generates a random gpa based on assumed normal distribution of nyc highschool data """
