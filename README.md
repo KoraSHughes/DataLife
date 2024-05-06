@@ -18,10 +18,12 @@ A current research project partnership between NYU, Politecnico di Milano, and R
   - stage 2 = [0,1] = students choose schools randomly but order by the school's likeability index, descending
   - stage 3 = [1,0] = students choose schools via popularity-weighted selection and placed in a randomized order
   - stage 4 = [1,1] = students choose schools via popularity-weighted selection and rank them based on the likeability index, descending
+  - stage 5 = [randint(0,1),randint(0,1)]
 - School Strategy = [c] : c = school.policy (defined around oneshot.py line 113)
   - stages 1-4 = [1] = school sorts students that applied based on lottery number descending
-  - stage 5 = [2] = school sorts students that applied based on seat number descending with lottery number as a tiebreaker
-  - stage 6 = [3] = school sorts students that applied based on screen number descending with lottery number as a tiebreaker
+  - stage 6 = [2] = school sorts students that applied based on seat number descending with lottery number as a tiebreaker
+  - stage 7 = [3] = school sorts students that applied based on screen number descending with lottery number as a tiebreaker
+  - stage 8 = randint(1,3)
 > Note: By default, all generation functions (oneshot.py lines 210-235) randomly select each of these parameters with equal probability. This means the default state of the simulation is stage 7. Also, the seat and screen distributions are defined in oneshot.py lines 28-29 and implemented in lines 199-208.
 
 ## Requirements:
