@@ -18,11 +18,27 @@ A current research project partnership between NYU, Politecnico di Milano, and R
   - stage 2 = [0,1] = students choose schools randomly but order by the school's likeability index, descending
   - stage 3 = [1,0] = students choose schools via popularity-weighted selection and placed in a randomized order
   - stage 4 = [1,1] = students choose schools via popularity-weighted selection and rank them based on the likeability index, descending
+  - stage 5 = [randint(0,1),randint(0,1)]
 - School Strategy = [c] : c = school.policy (defined around oneshot.py line 113)
   - stages 1-4 = [1] = school sorts students that applied based on lottery number descending
-  - stage 5 = [2] = school sorts students that applied based on seat number descending with lottery number as a tiebreaker
-  - stage 6 = [3] = school sorts students that applied based on screen number descending with lottery number as a tiebreaker
-> Note: By default, all generation functions (oneshot.py lines 210-235) randomly select each of these parameters with equal probability. This means the default state of the simulation is stage 7. Also, the seat and screen distributions are defined in oneshot.py lines 28-29 and implemented in lines 199-208.
+  - stage 6 = [2] = school sorts students that applied based on seat number descending with lottery number as a tiebreaker
+  - stage 7 = [3] = school sorts students that applied based on screen number descending with lottery number as a tiebreaker
+  - stage 8 = randint(1,3)
+ - Student List size [d] : d = student.num_schools = len(student.schools) (defined around oneshot.py line 59)
+  - stage 1-8 = [12]
+  - stage 9+ = [self.get_num_pick()] = normal distribution selection with mean 7 & std 2, cast to int, bounded 1 to 12 (defined around oneshot.py line 73)
+> Note: By default, the simulation has random student policy and random school policy with random student list, aka stage 9. Also, the seat and screen distributions are defined in oneshot.py lines 28-29 and implemented in lines 199-208. Check the official write-up for more details.
+
+## Requirements:
+- uuid(1.30) for lottery numbers
+- random, numpy(1.23.1), and pandas(1.4.3) for data handling
+- SequenceMatcher from difflib(0.3.5)
+> Note: this probably works with most versions but these are what we are currently using
+Optional imports:
+- for the load.ipynb visualizations: plotly express (5.9.0) & matplotlib (3.6.0)
+- for transparency: tqdm(4.64.1)
+- additional distance metrics for school matching: editdistance(0.8.1)
+
 
 ## Links:
 - Code: https://github.com/KoraSHughes/DataLife
