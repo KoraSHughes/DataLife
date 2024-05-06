@@ -25,14 +25,14 @@ A current research project partnership between NYU, Politecnico di Milano, and R
 > Note: By default, all generation functions (oneshot.py lines 210-235) randomly select each of these parameters with equal probability. This means the default state of the simulation is stage 7. Also, the seat and screen distributions are defined in oneshot.py lines 28-29 and implemented in lines 199-208.
 
 ## Requirements:
-- uuid for lottery numbers
+- uuid(1.30) for lottery numbers
 - random, numpy(1.23.1), and pandas(1.4.3) for data handling
 - SequenceMatcher from difflib(0.3.5)
 > Note: this probably works with most versions but these are what we are currently using
 Optional imports:
-- for the load.ipynb visualizations: plotly express (5.9.0) & matplotlib
-- for transparency: tqdm
-- additional distance metrics for school matching: editdistance
+- for the load.ipynb visualizations: plotly express (5.9.0) & matplotlib (3.6.0)
+- for transparency: tqdm(4.64.1)
+- additional distance metrics for school matching: editdistance(0.8.1)
 
 
 ## Links:
