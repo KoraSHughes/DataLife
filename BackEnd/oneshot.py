@@ -3,7 +3,7 @@
 import uuid  # lottery numbers
 import random
 import numpy as np  # additional randomization with normal distribution + file I/O in main()
-import pandas as pd  # handling csv data from schools
+import pandas as pd  # handling data from schools - not rly necessary
 from difflib import SequenceMatcher  # matching school names
 
 # School/Student Information
@@ -197,7 +197,7 @@ def add_fake_gpa(students):
     students["fake_gpa"] = students["fake_gpa"].apply(lambda score: round(4*score/max_score, 2))  # gpa-normalized
     return students
 
-def get_distributions():
+def get_distributions():  # NOTE: NOT IN USE
     """ returns quantile distribution of gpa based on real data
     used for seat/screen calculations """
     student_df = pd.read_csv("/Data/student_info_with_demographics.csv")
