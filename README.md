@@ -34,6 +34,7 @@ A current research project partnership between NYU, Politecnico di Milano, and R
 - random, numpy(1.23.1), and pandas(1.4.3) for data handling
 - SequenceMatcher from difflib(0.3.5)
 > Note: this probably works with most versions but these are what we are currently using
+
 Optional imports:
 - for the load.ipynb visualizations: plotly express (5.9.0) & matplotlib (3.6.0)
 - for transparency: tqdm(4.64.1)
