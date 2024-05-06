@@ -24,10 +24,10 @@ A current research project partnership between NYU, Politecnico di Milano, and R
   - stage 6 = [2] = school sorts students that applied based on seat number descending with lottery number as a tiebreaker
   - stage 7 = [3] = school sorts students that applied based on screen number descending with lottery number as a tiebreaker
   - stage 8 = randint(1,3)
- - Student List size [d] : d = student.num_schools = len(student.schools)
+ - Student List size [d] : d = student.num_schools = len(student.schools) (defined around oneshot.py line 59)
   - stage 1-8 = [12]
-  - stage 9+ = [self.get_num_pick()] = defined in oneshot.py line 73 = normal distribution selection with mean 7 & std 2, cast to int, bounded 1 to 12.
-> Note: By default, the simulation has random student policy and random school policy, aka stage 8. Also, the seat and screen distributions are defined in oneshot.py lines 28-29 and implemented in lines 199-208.
+  - stage 9+ = [self.get_num_pick()] = normal distribution selection with mean 7 & std 2, cast to int, bounded 1 to 12 (defined around oneshot.py line 73)
+> Note: By default, the simulation has random student policy and random school policy with random student list, aka stage 9. Also, the seat and screen distributions are defined in oneshot.py lines 28-29 and implemented in lines 199-208. Check the official write-up for more details.
 
 ## Requirements:
 - uuid(1.30) for lottery numbers
