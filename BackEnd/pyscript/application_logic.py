@@ -131,9 +131,10 @@ def on_click(event):
 	preferences = res.get('preferences')
 	random_state = res.get('rs')
 
-	if not is_valid(lottery) or preferences is None:
+	if has_data and (not is_valid(lottery) or preferences is None):
 		js.displayAlert('Please enter a valid lottery number and at least one school choice to run the simulation')
-		return
+		window.py_error = to_js(True)
+		window.dispatchEvent(js.pyDoneEvent)
 
 	# Load simulation results based on the provided data
 	students, schools, bins, matches, school_outcome = load_simulation_results(has_data, lottery, gpa, preferences, rs=random_state)
