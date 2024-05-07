@@ -34,7 +34,7 @@ edopt_dist = [88.25, 77.5]  #https://www.schools.nyc.gov/enrollment/enroll-grade
 
 # MAIN CLASSES
 class Student:
-    def __init__(self, seed, lottery="", schools=[], score=-1):
+    def __init__(self, seed, lottery="", schools=[], score=-1, sel=None, rnk=None):
         # necessary info
         self.id = seed
         random.seed(seed) # set the seed
@@ -52,9 +52,9 @@ class Student:
 
             seed_nums = random.choices([0,1], k=2)  # necessary to get 2 independent numbers
             # integer representation of how likely a student is to select a given school
-            self.selection_policy = seed_nums[0]
+            self.selection_policy = sel or seed_nums[0]
             # integer representation of how highly a student is to rank a school, given they've already selected it
-            self.ranking_policy = seed_nums[1]
+            self.ranking_policy = rnk or seed_nums[1]
 
             self.num_schools = self.get_num_pick(seed, False)
             self.schools = []  # to be updated later based on self.selection_policy
@@ -116,12 +116,12 @@ class Student:
 
 
 class School:
-    def __init__(self, seed, cap=-1, pop=-1, like=-1, name=""):
+    def __init__(self, seed, cap=-1, pop=-1, like=-1, name="", policy=None):
         # necessary info
         self.dbn = seed  # ID
         random.seed(seed) # set the seed
 
-        self.policy = random.randint(1,3)  # determines how schools select students (aka open/edopt/screen)
+        self.policy = policy or random.randint(1,3)  # determines how schools select students (aka open/edopt/screen)
         self.capacity = self.get_rand_cap(seed) if cap<0 else cap
 
         # popularity is how likely a school is to be on a student's list
@@ -221,11 +221,11 @@ seated = lambda x: set_place(x, edopt_dist)
 screened = lambda x: set_place(x, screen_dist)
 
 # GENERATION FUNCTIONS
-def generate_students(seed, size=71250):
+def generate_students(seed, size=71250, sel=None, rnk=None):
     """ generate students based on seeded random sampling """
     random.seed(seed)
     assert LARGE_NUM > size, f"{LARGE_NUM=} must be > {size=} for simulation to run properly"
-    return [Student("Student #"+str(i)) for i in random.sample(range(LARGE_NUM), size)]
+    return [Student("Student #"+str(i), sel=sel, rnk=rnk) for i in random.sample(range(LARGE_NUM), size)]
 
 def generate_schools(seed, size=437):
     """ generate schools based on seeded random sampling """
@@ -233,7 +233,7 @@ def generate_schools(seed, size=437):
     assert LARGE_NUM > size, f"{LARGE_NUM=} must be > {size=} for simulation to run properly"
     return [School("School #"+str(i)) for i in random.sample(range(LARGE_NUM), size)]
 
-def generate_nyc_schools(seed, school_info_dir="Data/schools_info.npy"):
+def generate_nyc_schools(seed, school_info_dir="Data/schools_info.npy", adm=None):
     """ generate schools based on nyc school applicant data """
     school_info = np.load(school_info_dir, allow_pickle=True).item()
     # {name: (dbn, capacity, true applicants, total applicants)}
@@ -241,7 +241,7 @@ def generate_nyc_schools(seed, school_info_dir="Data/schools_info.npy"):
     for name, info in school_info.items():  # NOTE: can add seeded variance in popularity & likeability
         tmp_like = 0 if info[3]==0 else round(info[2]/info[3], 3)  # applicant rate (proxy for true_ar)
         # NOTE: popularity can also be total_applicants/capacity but we want capacity-weighted for this implementaiton
-        schol = School(info[0], info[1], info[3], tmp_like, name)
+        schol = School(info[0], info[1], info[3], tmp_like, name, policy=adm)
         new_schools.append(schol)
     random.seed(seed)
     random.shuffle(new_schools)  # shuffle because order can affect tiebreakers
@@ -271,7 +271,7 @@ def simulate_student_choices(students, schools):
 
         # randomize list based on student's seed
         random.seed(str(stud))
-        random.shuffle(ranks)  
+        random.shuffle(ranks)
         # order based on student policy
         if stud.ranking_policy != 1:  # rank by likeability
             ranks.sort(key=lambda schol: schools[schol].likeability, reverse=True)
@@ -300,7 +300,7 @@ def simulate_school_choices(school_to_student, students, schools):
     return choices
 
 
-def oneshot(seed, nyc=True, num_schools=437, num_students=71250, verbose=False):
+def oneshot(seed, nyc=True, num_schools=437, num_students=71250, verbose=False, return_list=False, sel=None, rnk=None, adm=None):
     """ runs a basic simulation that generates schools and students and simulates their preferences:
         - student_preference_profile = {student_id : [school_ids_ranked]}
         - school_preference_profile = {school ids : [student_ids_ranked]}
@@ -319,9 +319,9 @@ def oneshot(seed, nyc=True, num_schools=437, num_students=71250, verbose=False):
     if verbose: print("Base Seed", seed, "created student seed", student_seed, "and school seed", school_seed)
 
     # generate students and schools
-    students = dict([[str(stud), stud] for stud in generate_students(student_seed, num_students)])
+    students = dict([[str(stud), stud] for stud in generate_students(student_seed, num_students, sel=sel, rnk=rnk)])
     if nyc:
-        schools = dict([[str(schol), schol] for schol in generate_nyc_schools(school_seed)])
+        schools = dict([[str(schol), schol] for schol in generate_nyc_schools(school_seed, adm=adm)])
     else:
         schools = dict([[str(schol), schol] for schol in generate_schools(school_seed, num_schools)])
     if verbose:
@@ -335,13 +335,16 @@ def oneshot(seed, nyc=True, num_schools=437, num_students=71250, verbose=False):
     # Note: no random seed since lottery# informs the tiebreaks
     school_preference_profile = simulate_school_choices(school_to_student, students, schools)
 
-    list_students = dict([[str(stud), stud.to_list()] for stud in students.values()])
-    list_schools = dict([[str(school), school.to_list()] for school in schools.values()])
+    if return_list:
+        ret_students = dict([[str(stud), stud.to_list()] for stud in students.values()])
+        ret_schools = dict([[str(school), school.to_list()] for school in schools.values()])
+    else:
+        ret_students, ret_schools = students, schools
 
-    return student_preference_profile, school_preference_profile, list_students, list_schools
+    return student_preference_profile, school_preference_profile, ret_students, ret_schools
 
 
-def oneshot_with_input(seed, lottery_num, my_schools, gpa=-1, student_name="injected_student", verbose=False):
+def oneshot_with_input(seed, lottery_num, my_schools, gpa=-1, student_name="injected_student", verbose=False, return_list=False):
     """ runs a simulation based on NYC data with a single student as input
     Note: for student, lottery# & schools required, percentile scale gpa recommended, name possible
     """
@@ -373,34 +376,57 @@ def oneshot_with_input(seed, lottery_num, my_schools, gpa=-1, student_name="inje
     if verbose: print("School choices simulating...")
     school_preference_profile = simulate_school_choices(school_to_student, students, schools)
 
-    list_students = dict([[str(stud), stud.to_list()] for stud in students.values()])
-    list_schools = dict([[str(school), school.to_list()] for school in schools.values()])
+    if return_list:
+        ret_students = dict([[str(stud), stud.to_list()] for stud in students.values()])
+        ret_schools = dict([[str(school), school.to_list()] for school in schools.values()])
+    else:
+        ret_students, ret_schools = students, schools
 
-    return student_preference_profile, school_preference_profile, list_students, list_schools
+    return student_preference_profile, school_preference_profile, ret_students, ret_schools
 
 
 if __name__ == '__main__':
-    simstate = input("Simulation state (int):  ")  # basic user input for 1shot code
-    print("running simulation...")
-    student_prefs, school_prefs, students, schools = oneshot(int(simstate), True)
-    # SAVE RESULTS
-    do_save = input("\nsave the results? (y/n)  ")
-    if str(do_save).lower() == "y":
-        np.save("student_rankings.npy", student_prefs)
-        np.save("school_rankings.npy", school_prefs)
+    opt = input('input a random state (y/n)? ')
 
-        list_students = dict([[str(stud), stud.to_list()] for stud in students.values()])
-        np.save("student_info.npy", list_students)
-        list_schools = dict([[str(schol), schol.to_list()] for schol in schools.values()])
-        np.save("school_info.npy", list_schools)
+    if str(opt).lower() == "y":
+        # "legacy" main
+        simstate = input("Simulation state (int):  ")  # basic user input for 1shot code
+        print("running simulation...")
+        student_prefs, school_prefs, students, schools = oneshot(int(simstate), True)
+        # SAVE RESULTS
+        do_save = input("\nsave the results? (y/n)  ")
+        if str(do_save).lower() == "y":
+            np.save("student_rankings.npy", student_prefs)
+            np.save("school_rankings.npy", school_prefs)
 
-        print("Simulation state", simstate, "saved at local directory!")
-    # DISPLAY RESULTS
-    do_show = input("\nshow results? (y/n)  ")
-    if str(do_show).lower() == "y":
-        print("\nSTUDENT PREFERENCES:")
-        print(student_prefs)
-        print("\n\nSCHOOL PREFERENCES:")
-        print(school_prefs)
+            list_students = dict([[str(stud), stud.to_list()] for stud in students.values()])
+            np.save("student_info.npy", list_students)
+            list_schools = dict([[str(schol), schol.to_list()] for schol in schools.values()])
+            np.save("school_info.npy", list_schools)
+
+            print("Simulation state", simstate, "saved at local directory!")
+        # DISPLAY RESULTS
+        do_show = input("\nshow results? (y/n)  ")
+        if str(do_show).lower() == "y":
+            print("\nSTUDENT PREFERENCES:")
+            print(student_prefs)
+            print("\n\nSCHOOL PREFERENCES:")
+            print(school_prefs)
+
+    else:
+        # generate random states 1-50
+        for simstate in range(1, 51):
+            student_prefs, school_prefs, students, schools = oneshot(int(simstate), True)
+            # SAVE RESULTS
+            path = 'BackEnd/Data/Generated/simulation_results_rs' + str(simstate) + '/'
+            np.save(path + "student_rankings.npy", student_prefs)
+            np.save(path + "school_rankings.npy", school_prefs)
+
+            list_students = dict([[str(stud), stud.to_list()] for stud in students.values()])
+            np.save(path + "student_info.npy", list_students)
+            list_schools = dict([[str(schol), schol.to_list()] for schol in schools.values()])
+            np.save(path + "school_info.npy", list_schools)
+
+            print("Simulation state", simstate, "saved at local directory!")
 
 # TODO: maybe make this into a python package: https://www.youtube.com/watch?v=tEFkHEKypLI
