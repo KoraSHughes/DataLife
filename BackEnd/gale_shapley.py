@@ -94,6 +94,10 @@ class School:
 		return reject[1]
 
 	def prefers_to_matches(self, student_id):
+		"""
+		Returns `True` if the school prefers the student with the specified ID to at least one of the students it has
+		accepted, namely if the student in question is ranked higher than the lowest-ranked accepted student.
+		"""
 		rank = self.ranking.get(student_id)
 		worst_match_rank = self.non_priority_list[0][0]
 		return rank < -worst_match_rank
@@ -219,24 +223,34 @@ class Matching:
 		Runs the Gale-Shapley matching algorithm between the provided students and schools.
 		"""
 
+		# This FIFO queue contains all applicants that do not currently have a match, but can still propose to some schools
+		# on their ranking. If it's empty, then all students are either matched to a school or definitively unmatched.
 		students_to_match = list(self.students.copy().items())
 
 		while students_to_match:
-			identifier, student = students_to_match.pop(0)
+			identifier, current_student = students_to_match.pop(0)
 
 			matched = False
-			while not matched and student.can_propose():
-				target_id = student.propose()
-				target_school = self.schools.get(target_id)
-				matched = target_school.check_match(identifier)
+			# The current student will keep proposing, moving down their school ranking, until one of the following occurs:
+	 		# - They are accepted by one of the schools, so they find a (provisional) match, in which case matched == True.
+			# - They propose to all schools on their ranking and never get accepted, so they are unmatched, in which case
+	 		#   matched == False.
+			while not matched and current_student.can_propose():
+				target_dbn = current_student.propose()  # Get the DBN of the next school to propose to
+				target_school = self.schools.get(target_dbn)  # Fetch the school object
+				matched = target_school.check_match(identifier)  # Check if the school would accept the proposal
 
+			# If the student stopped proposing because they found a match, it is possible that the school that accepted them
+	 		# had to reject a student who was previously holding a seat. If that is the case, the rejected student will be
+			# added back to the queue to try and find a new match.
 			if matched:
-				student.update_match_status(True)
-				unmatched_id = target_school.handle_proposal(identifier)
-				if unmatched_id is not None:
-					unmatched_student = self.students.get(unmatched_id)
-					unmatched_student.update_match_status(False)
-					students_to_match.append((unmatched_id, unmatched_student))
+				current_student.update_match_status(True)
+				# Add the current student to the school accepting them and fetch the ID of the rejected student, if any
+				rejected_id = target_school.handle_proposal(identifier)
+				if rejected_id is not None:
+					rejected_student = self.students.get(rejected_id)
+					rejected_student.update_match_status(False)
+					students_to_match.append((rejected_id, rejected_student))
 
 	def check_stability(self):
 		"""
@@ -246,23 +260,35 @@ class Matching:
 		print()
 		print('*** Stability check ***')
 
-		# Verify that the outcome is stable, i.e. there are no (student, school) pairs that would rather be
-		# matched together than with their current matches
+		# Verify that the outcome is stable, i.e. there are no applicant-school pairs (a_j, s_i) such that both of the
+		# following conditions apply:
+		# (1) The applicant a_j would rather be matched with s_i than with their assigned match.
+		# (2) The school s_i would rather accept a_j than its lowest-ranked accepted student.
+
 		unstable_pairs = []
 		for student_id, student in self.students.items():
+			# For all students, fetch the school they were matched to and the school's placement on their ranking
 			matched_school, rank = student.get_result()
-			# If rank == 0 then the student is matched with their preferred school, thus the pair is stable
+
+			# If rank == 0 then the student is matched with their top choice, thus the pair is stable
 			if rank is None or rank > 0:
+				# If rank > 0 then the student is not matched with their top choice; fetching all schools the student ranked
+				# higher than their match satisfies condition (1)
 				preferred_schools = student.ranking if rank is None else student.ranking[:rank]
 				i = 0
 				found_unstable = False
+
+				# Iterating over the schools this student would prefer over their match
 				while not found_unstable and i < len(preferred_schools):
-					current_school_id = preferred_schools[i]
-					current_school = self.schools[current_school_id]
+					current_school_dbn = preferred_schools[i]
+					current_school = self.schools[current_school_dbn]  # Fetch school object from DBN
 					i += 1
+
+					# The school prefers this student if the student is ranked higher than the lowest-ranked among the applicants
+		 			# already accepted by the school: if that happens, then condition (2) is satisfied and the match is unstable
 					if current_school.prefers_to_matches(student_id):
 						found_unstable = True
-						unstable_pairs.append((student_id, (matched_school, rank+1 if rank else None), (current_school_id, i)))
+						unstable_pairs.append((student_id, (matched_school, rank+1 if rank else None), (current_school_dbn, i)))
 
 		num_unstable = len(unstable_pairs)
 		print()
