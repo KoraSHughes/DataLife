@@ -342,7 +342,7 @@ class UserData {
 	}
 
 	/**
-	 * This function returns an object containing the custom data passed by the user (lottery number, preference profile,
+	 * This function returns an object containing the custom data passed by the user (lottery number, ranking,
 	 * GPA) along with a security check, whose value is `False` only if no data has been provided, and the random state.
 	 */
 	getValues(updateRandomState = false) {
@@ -427,6 +427,7 @@ class DataVisualizer {
 		this.spotlightPar1 = document.getElementById('spotlight-par-1');
 		this.spotlightPar2 = document.getElementById('spotlight-par-2');
 		this.plotSecondary = document.getElementById('plot-secondary');
+		this.selectFirstDigit = document.getElementById('first-digit');
 
 		this.computeAggregateStats();
 		this.attachListeners();
@@ -496,6 +497,8 @@ class DataVisualizer {
 
 		this.pSchoolsUnfilled.nextSibling.addEventListener('click', () => self.showFocus('school', 'unfilled'));
 		this.pSeatsUnfilled.nextSibling.addEventListener('click', () => self.showFocus('school', 'seats'));
+
+		this.selectFirstDigit.addEventListener('change', e => self.plotCounts(undefined, e.target.value));
 	}
 
 	computeCustomOutcome() {
@@ -539,13 +542,13 @@ class DataVisualizer {
 
 			let gq1 = d3.quantile(gradesOther, .25), gq2 = d3.quantile(gradesOther, .5), gq3 = d3.quantile(gradesOther, .75);
 			if (userGrade < gq1)
-				qualityGrade = 'high';
-			else if (userGrade < gq2)
-				qualityGrade = 'above average';
-			else if (userGrade < gq3)
-				qualityGrade = 'below average';
-			else
 				qualityGrade = 'low';
+			else if (userGrade < gq2)
+				qualityGrade = 'below average';
+			else if (userGrade < gq3)
+				qualityGrade = 'above average';
+			else
+				qualityGrade = 'high';
 
 			par2 = 'Compared to students matched with the same school as you, your lottery number is '
 				+ qualityLottery + ' and your GPA is ' + qualityGrade + '.';
@@ -572,14 +575,17 @@ class DataVisualizer {
 					});
 			});
 
-			heading = 'Among the applicants matched ahead of you,';
+			if (outcomeRank == undefined)
+				heading = 'Among the applicants matched with the schools you selected,';
+			else
+				heading = 'Among the applicants matched with schools you ranked higher than ' + getOrdinal(outcomeRank) +',';
 			number = (100 * numLottery / numAhead).toFixed(1) + '%';
 			subtitle = 'had a better lottery number than yours.';
-			par1 = 'Among those who matched ahead of you with a worse lottery number, '
+			par1 = 'Among those who matched with those schools having a worse lottery number, '
 				+ (100 * numGrade / (numAhead - numLottery)).toFixed(1) + '% had a higher GPA than you.';
 		} else {
 			// In case the student was matched to their top choice
-			heading = 'Congrats, you were matched with your top choice!'
+			heading = 'You were matched with your top choice.'
 		}
 
 		return { heading, number, subtitle, par1, par2, par3 };
@@ -673,11 +679,11 @@ class DataVisualizer {
 			if (variant === 'strategy') {
 				par1 = (this.studentPolicyMatrix[0][0] + this.studentPolicyMatrix[0][1]).toLocaleString()
 					+ ' applicants selected the schools at random. Among them, ' + this.studentPolicyMatrix[0][0].toLocaleString()
-					+ ' left the preference profile unordered, while ' + this.studentPolicyMatrix[0][1].toLocaleString()
+					+ ' left the ranking unordered, while ' + this.studentPolicyMatrix[0][1].toLocaleString()
 					+ ' sorted the selected schools by likeability.';
 				par2 = (this.studentPolicyMatrix[1][0] + this.studentPolicyMatrix[1][1]).toLocaleString()
 					+ ' applicants selected the schools based on their popularity. Among them, '
-					+ this.studentPolicyMatrix[1][0].toLocaleString() + ' left the preference profile unordered, while '
+					+ this.studentPolicyMatrix[1][0].toLocaleString() + ' left the ranking unordered, while '
 					+ this.studentPolicyMatrix[0][1].toLocaleString() + ' sorted the selected schools by likeability.';
 			} else if (variant === 'policy') {
 				par1 = 'In this simulation, ' + this.admissionPolicies[0] + ' schools were open, ' + this.admissionPolicies[1]
@@ -702,13 +708,16 @@ class DataVisualizer {
 					partialPopularity += e[1].get('popularity');
 			}
 
+			let popularityDifferential = (totalPopularity / this.totalSchools) / (partialPopularity / this.numSchoolsUnfilled) - 1;
+			let popularityWeightRatio = (this.studentPolicyMatrix[1][0] + this.studentPolicyMatrix[1][0]) / this.totalStudents;
+
 			number = (100 * this.numSchoolsUnfilled / this.totalSchools).toFixed(1) + '%';
 			subtitle = 'of the schools (' + this.numSchoolsUnfilled + ' out of ' + this.totalSchools + ') are not at full capacity.';
 			par1 = 'This amounts to a total of ' + this.seatsUnfilled.toLocaleString() + ' seats left unfilled, for an average of '
 				+ (this.seatsUnfilled / this.numSchoolsUnfilled).toFixed(1) + ' unfilled seats per school.';
 			par2 = 'Overall, the average school was ' +
-				(100 * ((totalPopularity / this.totalSchools) / (partialPopularity / this.numSchoolsUnfilled) - 1)).toFixed(1)
-				+ '% more likely to be added to a student\'s preference profile compared to these schools.'
+				(100 * popularityDifferential * popularityWeightRatio).toFixed(1)
+				+ '% more likely to be added to a student\'s ranking compared to these schools.'
 
 		}
 
@@ -829,7 +838,7 @@ class DataVisualizer {
 
 	/**
 	 * Plots a tree-map displaying the distribution of students based on the position of their matched school on the
-	 * preference profile. Students are grouped between those matched with schools ranked 1-5, those matched with schools
+	 * ranking. Students are grouped between those matched with schools ranked 1-5, those matched with schools
 	 * ranked 6-12, and those unmatched.
 	 */
 	plotTreeMap() {
@@ -904,6 +913,7 @@ class DataVisualizer {
 		svg.selectAll('text')
 			.data(root.leaves())
 			.enter()
+			.filter(d => d.data.value >= 500)
 			.append('text')
 			.attr('x', d => d.x0 + 5)    // +10 to adjust position (more right)
 			.attr('y', d => d.y0 + 15)    // +20 to adjust position (lower)
@@ -915,6 +925,7 @@ class DataVisualizer {
 		svg.selectAll('vals')
 			.data(root.leaves())
 			.enter()
+			.filter(d => d.data.value >= 500)
 			.append('text')
 			.attr('x', d => d.x0 + 5)
 			.attr('y', d => d.y0 + 30)
@@ -933,12 +944,15 @@ class DataVisualizer {
 	}
 
 	/**
-	 * Plots a histogram displaying the number of students matched with each position on their preference profile,
+	 * Plots a histogram displaying the number of students matched with each position on their ranking,
 	 * highlighting those matched with their `indexFocused`-th choice.
 	 */
-	plotCounts(indexFocused, cumulative = false) {
+	plotCounts(indexFocused, firstDigit = '') {
 		// Clear any existing plots
-		this.plotPrimary.innerHTML = '';
+		if (indexFocused != undefined)
+			this.plotPrimary.innerHTML = '';
+		else
+			document.getElementById('plot-tertiary').innerHTML = '';
 
 		// Set the dimensions and margins of the graph
 		const margin = { top: 30, right: 25, bottom: 25, left: 50 };
@@ -946,7 +960,24 @@ class DataVisualizer {
 		const height = 400;
 
 		// Map the data to the correct format
-		const ratiosMap = this.ratios.keys().toArray().map(k => { return { index: k + 1, ratio: this.ratios[k] } });
+		let ratios;
+		if (firstDigit === '')
+			ratios = this.ratios;
+		else {
+			 let subsetStudents = [];
+			// Select all students whose lottery number starts with the specified digit
+			for (let e of this.studentInfo.entries()) {
+				let studentId = e[0], studentLottery = e[1].get('lottery');
+				if (studentLottery.substring(0, 1).toUpperCase() === firstDigit)
+					subsetStudents.push(studentId);
+			}
+
+			ratios = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+			subsetStudents.map(id => this.matches.get(id).get('rank')).forEach(r => ratios[(r || 13) - 1] += 1);
+			ratios = ratios.map(c => c / subsetStudents.length);
+		}
+
+		const ratiosMap = ratios.keys().toArray().map(k => { return { index: k + 1, ratio: ratios[k] } });
 
 		const self = this;
 		const clickHandler = idx => self.plotLotteryRange(idx);
@@ -963,7 +994,7 @@ class DataVisualizer {
 			.range([height - margin.bottom, margin.top]);
 
 		// Append the SVG container
-		const svg = d3.select('#plot-primary')
+		const svg = d3.select(indexFocused == undefined ? '#plot-tertiary' : '#plot-primary')
 			.append('svg')
 			.attr('width', width)
 			.attr('height', height)
@@ -975,15 +1006,14 @@ class DataVisualizer {
 			.data(ratiosMap)
 			.join('rect')
 			.attr('x', d => x(d.index))
-			.attr('y', d => y(d.ratio))
-			.attr('height', d => y(0) - y(d.ratio))
+			.attr('y', d => y(0))
 			.attr('width', x.bandwidth())
-			.attr('fill', d => {
-				if (cumulative)
-					return (d.index <= indexFocused) ? '#4036ed' : '#a4a3f1';
-				return (d.index === indexFocused) ? '#4036ed' : '#a4a3f1'
-			})
-			.on('click', (e, d) => clickHandler(d.index));
+			.attr('fill', d => (indexFocused == undefined || d.index === indexFocused) ? '#4036ed' : '#a4a3f1')
+			.on('click', (e, d) => clickHandler(d.index))
+			.transition()
+			.duration(1000)
+				.attr('y', d => y(d.ratio))
+				.attr('height', d => y(0) - y(d.ratio));
 
 		// Add the X axis
 		svg.append('g')
@@ -1042,6 +1072,7 @@ class DataVisualizer {
 		this.pSeatsUnfilled.nodeValue = this.seatsUnfilled.toLocaleString();
 
 		this.focusSection.classList.add('hide');
+		this.spotlightSection.classList.add('hide');
 	}
 
 	/**
@@ -1100,6 +1131,11 @@ window.addEventListener('py:all-done', () => {
 });
 
 window.addEventListener('py-backend-done', () => {
+	if (window.py_error) {
+		document.getElementById('simulation-loader').classList.add('hide');  // Hide loader
+		return;
+	}
+
 	// After the simulation is executed, fetch the results from the global variables and initialize the visualizer.
 	const visualizer =
 		new DataVisualizer(window.py_students, window.py_schools, window.py_bins, window.py_matches, window.py_school_outcome);

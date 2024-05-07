@@ -49,6 +49,16 @@ li:last-child {
 	padding: .5vh .25vw;
 }
 
+select {
+	padding: 0.25em 0.25em;
+	border-radius: 0.5rem;
+	border: 1px solid var(--color-text-dark);
+}
+
+select:focus {
+	border: 2px solid var(--color-accent);
+}
+
 input {
 	border: none;
 	outline: none;
@@ -63,6 +73,12 @@ input::placeholder {
 
 input::-webkit-calendar-picker-indicator {
 	opacity: 0;
+}
+
+img {
+	width: 100%;
+	height: auto;
+	border-radius: 25px;
 }
 
 svg {
@@ -536,9 +552,10 @@ a.icon > .material-symbols-outlined {
 .grayscale {
 	background-image: linear-gradient(
 		to right,
-		#37447e,
-		#bac3e5,
-		#e7ecff
+		var(--color-accent),
+		var(--color-bg-vivid),
+		var(--color-bg-soft),
+		var(--color-bg-soft)
 	);
 }
 
@@ -618,12 +635,8 @@ h4:has(+ h1) {
 	margin-bottom: 3vh;
 }
 
-#plot-primary {
+#plot-primary, #plot-secondary, #plot-tertiary {
 	padding: 1vh 1vw;
-}
-
-#plot-secondary {
-	flex-shrink: 0;
 }
 
 /* *** Misc *** */
