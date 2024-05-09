@@ -34,7 +34,7 @@ edopt_dist = [88.25, 77.5]  #https://www.schools.nyc.gov/enrollment/enroll-grade
 
 # MAIN CLASSES
 class Student:
-    def __init__(self, seed, lottery="", schools=[], score=-1, sel=None, rnk=None):
+    def __init__(self, seed, lottery="", schools=[], score=-1, sel=None, rnk=None, max_schools=False):
         # necessary info
         self.id = seed
         random.seed(seed) # set the seed
@@ -52,11 +52,11 @@ class Student:
 
             seed_nums = random.choices([0,1], k=2)  # necessary to get 2 independent numbers
             # integer representation of how likely a student is to select a given school
-            self.selection_policy = sel or seed_nums[0]
+            self.selection_policy = sel if sel is not None else seed_nums[0]
             # integer representation of how highly a student is to rank a school, given they've already selected it
-            self.ranking_policy = rnk or seed_nums[1]
+            self.ranking_policy = rnk if rnk is not None else seed_nums[1]
 
-            self.num_schools = self.get_num_pick(seed, False)
+            self.num_schools = self.get_num_pick(seed, max_schools)
             self.schools = []  # to be updated later based on self.selection_policy
             self.name = ""
 
@@ -121,7 +121,7 @@ class School:
         self.dbn = seed  # ID
         random.seed(seed) # set the seed
 
-        self.policy = policy or random.randint(1,3)  # determines how schools select students (aka open/edopt/screen)
+        self.policy = policy if policy is not None else random.randint(1,3)  # determines how schools select students (aka open/edopt/screen)
         self.capacity = self.get_rand_cap(seed) if cap<0 else cap
 
         # popularity is how likely a school is to be on a student's list
@@ -221,11 +221,11 @@ seated = lambda x: set_place(x, edopt_dist)
 screened = lambda x: set_place(x, screen_dist)
 
 # GENERATION FUNCTIONS
-def generate_students(seed, size=71250, sel=None, rnk=None):
+def generate_students(seed, size=71250, sel=None, rnk=None, max_schools=False):
     """ generate students based on seeded random sampling """
     random.seed(seed)
     assert LARGE_NUM > size, f"{LARGE_NUM=} must be > {size=} for simulation to run properly"
-    return [Student("Student #"+str(i), sel=sel, rnk=rnk) for i in random.sample(range(LARGE_NUM), size)]
+    return [Student("Student #"+str(i), sel=sel, rnk=rnk, max_schools=max_schools) for i in random.sample(range(LARGE_NUM), size)]
 
 def generate_schools(seed, size=437):
     """ generate schools based on seeded random sampling """
@@ -300,7 +300,7 @@ def simulate_school_choices(school_to_student, students, schools):
     return choices
 
 
-def oneshot(seed, nyc=True, num_schools=437, num_students=71250, verbose=False, return_list=False, sel=None, rnk=None, adm=None):
+def oneshot(seed, nyc=True, num_schools=437, num_students=71250, verbose=False, return_list=False, sel=None, rnk=None, adm=None, max_schools=False):
     """ runs a basic simulation that generates schools and students and simulates their preferences:
         - student_preference_profile = {student_id : [school_ids_ranked]}
         - school_preference_profile = {school ids : [student_ids_ranked]}
@@ -319,7 +319,7 @@ def oneshot(seed, nyc=True, num_schools=437, num_students=71250, verbose=False, 
     if verbose: print("Base Seed", seed, "created student seed", student_seed, "and school seed", school_seed)
 
     # generate students and schools
-    students = dict([[str(stud), stud] for stud in generate_students(student_seed, num_students, sel=sel, rnk=rnk)])
+    students = dict([[str(stud), stud] for stud in generate_students(student_seed, num_students, sel=sel, rnk=rnk, max_schools=max_schools)])
     if nyc:
         schools = dict([[str(schol), schol] for schol in generate_nyc_schools(school_seed, adm=adm)])
     else:
