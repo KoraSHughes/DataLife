@@ -264,7 +264,7 @@ def simulate_student_choices(students, schools):
         # for each student, choose schools depending on strategy based on seed
         ranks = []
         random.seed(str(stud))
-        if stud.selection_policy == 1:  # fully randomized
+        if stud.selection_policy != 1:  # fully randomized
             ranks = random.choices(population=full_random, k=stud.num_schools)
         else:  # popularity weighted randomized
             ranks = random.choices(population=full_random, weights=popularity_weights, k=stud.num_schools)
@@ -273,7 +273,7 @@ def simulate_student_choices(students, schools):
         random.seed(str(stud))
         random.shuffle(ranks)
         # order based on student policy
-        if stud.ranking_policy != 1:  # rank by likeability
+        if stud.ranking_policy == 1:  # rank by likeability
             ranks.sort(key=lambda schol: schools[schol].likeability, reverse=True)
             # NOTE: ties are handled by how the list was previously sorted which is depended on the seed
         choices[str(stud)] = ranks

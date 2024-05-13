@@ -1032,7 +1032,7 @@ class DataVisualizer {
 				.attr('fill', '#000000')
 				.attr('text-anchor', 'start')
 				.attr('font-size', '14px')
-				.text('Matched students'));
+				.text('Matched students' + (indexFocused == undefined ? ' - First digit ' + firstDigit : '')));
 
 		// Tooltip
 		svg.selectAll('rect')
